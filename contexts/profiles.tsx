@@ -1,10 +1,51 @@
 import createContextHook from "@nkzw/create-context-hook";
 import { useState, useEffect, useCallback, useMemo } from "react";
+import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Profile } from "../types/profile";
 
 const PROFILES_STORAGE_KEY = "@alphago_profiles";
 const SELECTED_PROFILES_STORAGE_KEY = "@alphago_selected_profiles";
+
+const isWeb = Platform.OS === "web";
+
+const secureGetItem = async (key: string): Promise<string | null> => {
+  try {
+    if (isWeb) {
+      return await AsyncStorage.getItem(key);
+    }
+    return await SecureStore.getItemAsync(key);
+  } catch (error) {
+    console.error(`[SecureStore] Failed to get ${key}:`, error);
+    return null;
+  }
+};
+
+const secureSetItem = async (key: string, value: string): Promise<void> => {
+  try {
+    if (isWeb) {
+      await AsyncStorage.setItem(key, value);
+    } else {
+      await SecureStore.setItemAsync(key, value);
+    }
+  } catch (error) {
+    console.error(`[SecureStore] Failed to set ${key}:`, error);
+    throw error;
+  }
+};
+
+const secureDeleteItem = async (key: string): Promise<void> => {
+  try {
+    if (isWeb) {
+      await AsyncStorage.removeItem(key);
+    } else {
+      await SecureStore.deleteItemAsync(key);
+    }
+  } catch (error) {
+    console.error(`[SecureStore] Failed to delete ${key}:`, error);
+  }
+};
 
 export const [ProfileProvider, useProfiles] = createContextHook(() => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -17,10 +58,10 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
 
     const loadProfiles = async () => {
       try {
-        console.log("[ProfileProvider] Loading profiles...");
+        console.log("[ProfileProvider] Loading profiles from secure storage...");
         const [storedProfiles, storedSelected] = await Promise.all([
-          AsyncStorage.getItem(PROFILES_STORAGE_KEY),
-          AsyncStorage.getItem(SELECTED_PROFILES_STORAGE_KEY),
+          secureGetItem(PROFILES_STORAGE_KEY),
+          secureGetItem(SELECTED_PROFILES_STORAGE_KEY),
         ]);
 
         if (!mounted) return;
@@ -32,7 +73,7 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
             console.log("[ProfileProvider] Loaded profiles:", parsed.length);
           } catch (parseError) {
             console.error("[ProfileProvider] Failed to parse profiles, resetting:", parseError);
-            await AsyncStorage.removeItem(PROFILES_STORAGE_KEY);
+            await secureDeleteItem(PROFILES_STORAGE_KEY);
           }
         }
 
@@ -43,7 +84,7 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
             console.log("[ProfileProvider] Loaded selected profiles:", parsed.length);
           } catch (parseError) {
             console.error("[ProfileProvider] Failed to parse selected profiles, resetting:", parseError);
-            await AsyncStorage.removeItem(SELECTED_PROFILES_STORAGE_KEY);
+            await secureDeleteItem(SELECTED_PROFILES_STORAGE_KEY);
           }
         }
 
@@ -78,7 +119,7 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
 
   const saveProfiles = useCallback(async (newProfiles: Profile[]) => {
     try {
-      await AsyncStorage.setItem(
+      await secureSetItem(
         PROFILES_STORAGE_KEY,
         JSON.stringify(newProfiles)
       );
@@ -90,7 +131,7 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
 
   const saveSelectedProfiles = useCallback(async (ids: string[]) => {
     try {
-      await AsyncStorage.setItem(
+      await secureSetItem(
         SELECTED_PROFILES_STORAGE_KEY,
         JSON.stringify(ids)
       );

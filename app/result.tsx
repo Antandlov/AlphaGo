@@ -10,17 +10,19 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { X, CheckCircle2, XCircle, AlertTriangle, Check } from "lucide-react-native";
+import { X, CheckCircle2, XCircle, AlertTriangle, Check, Volume2 } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useScanHistory } from "../contexts/scan-history";
 import { ALLERGENS } from "../constants/allergens";
 import * as Haptics from "expo-haptics";
+import * as Speech from "expo-speech";
 
 export default function ResultScreen() {
   const router = useRouter();
   const { scanId } = useLocalSearchParams();
   const { history } = useScanHistory();
   const [showDetails, setShowDetails] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const scan = history.find((s) => s.id === scanId);
 
@@ -62,6 +64,14 @@ export default function ResultScreen() {
         setTimeout(() => setShowDetails(true), 200);
       });
     }
+
+    return () => {
+      Speech.isSpeakingAsync().then((speaking) => {
+        if (speaking) {
+          Speech.stop();
+        }
+      }).catch(err => console.error("[Speech] Cleanup error:", err));
+    };
   }, [scan, scaleAnim, fadeAnim, checkmarkRotate]);
 
   if (!scan) {
@@ -180,16 +190,81 @@ export default function ResultScreen() {
     }
   };
 
+  const handleSpeakResult = async () => {
+    try {
+      if (isSpeaking) {
+        await Speech.stop();
+        setIsSpeaking(false);
+        return;
+      }
+
+      setIsSpeaking(true);
+
+      let message = `${getTitle()}. `;
+      
+      if (scan.productName) {
+        message += `Product: ${scan.productName}. `;
+      }
+
+      message += `${getSubtitle()}. `;
+
+      if (unsafeIngredients.length > 0) {
+        message += `Unsafe ingredients: ${unsafeIngredients.map(i => i.name).join(", ")}. `;
+      }
+
+      if (cautionIngredients.length > 0) {
+        message += `Caution required for: ${cautionIngredients.map(i => i.name).join(", ")}. `;
+      }
+
+      console.log("[VoiceReadout] Speaking:", message);
+
+      await Speech.speak(message, {
+        language: "en",
+        pitch: 1.0,
+        rate: 0.9,
+        onDone: () => {
+          console.log("[VoiceReadout] Speech completed");
+          setIsSpeaking(false);
+        },
+        onStopped: () => {
+          console.log("[VoiceReadout] Speech stopped");
+          setIsSpeaking(false);
+        },
+        onError: (error) => {
+          console.error("[VoiceReadout] Speech error:", error);
+          setIsSpeaking(false);
+        },
+      });
+    } catch (error) {
+      console.error("[VoiceReadout] Failed to speak:", error);
+      setIsSpeaking(false);
+    }
+  };
+
   return (
     <View style={[styles.container, getBackgroundStyle()]}>
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.closeIconButton}
-            onPress={() => router.back()}
-          >
-            <X size={28} color={getIconColor()} />
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.voiceButton}
+              onPress={handleSpeakResult}
+              testID="voice-readout-button"
+              accessibilityLabel={isSpeaking ? "Stop voice readout" : "Start voice readout"}
+              accessibilityRole="button"
+            >
+              <Volume2 size={24} color={isSpeaking ? "#10b981" : getIconColor()} strokeWidth={isSpeaking ? 3 : 2} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.closeIconButton}
+              onPress={() => router.back()}
+              testID="close-result-button"
+              accessibilityLabel="Close result"
+              accessibilityRole="button"
+            >
+              <X size={28} color={getIconColor()} />
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
 
@@ -388,6 +463,18 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
     alignItems: "flex-end",
+  },
+  headerButtons: {
+    flexDirection: "row" as const,
+    gap: 12,
+  },
+  voiceButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
   },
   closeIconButton: {
     width: 44,

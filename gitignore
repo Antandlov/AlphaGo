@@ -1,0 +1,107 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+.expo-shared/
+
+# Native builds
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Metro
+.metro-health-check*
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+.env*.local
+
+# Debugging
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# IDE / Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+/coverage
+*.lcov
+
+# Temporary files
+*.tmp
+*.temp
+
+# Android
+*.apk
+*.aab
+*.dex
+*.ap_
+
+# Android/IntelliJ
+build/
+.gradle
+local.properties
+*.iml
+.externalNativeBuild
+.cxx/
+
+# iOS
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+ios/.xcode.env.local
+Pods/
+
+# Firebase / Google Services
+google-services.json
+GoogleService-Info.plist
+firebase-debug.log
+
+# Sensitive files
+secrets/
+*.pem
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# React Native
+*.jsbundle
