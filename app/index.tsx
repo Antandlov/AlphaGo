@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Scan, Bug, AlertCircle, HelpCircle, Users, CheckCircle2, Sparkles } from "lucide-react-native";
+import { Scan, Bug, AlertCircle, HelpCircle, Users, CheckCircle2, Sparkles, Settings } from "lucide-react-native";
 import { useProfiles } from "../contexts/profiles";
 import { ALLERGENS } from "../constants/allergens";
 
@@ -33,8 +33,17 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.logo}>AlphaGo</Text>
-          <Text style={styles.tagline}>Allergen-Safe Scanning</Text>
+          <View style={styles.headerContent}>
+            <Text style={styles.logo}>AlphaGo</Text>
+            <Text style={styles.tagline}>Allergen-Safe Scanning</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => router.push("/settings")}
+            activeOpacity={0.7}
+          >
+            <Settings size={24} color="#065f46" />
+          </TouchableOpacity>
         </View>
 
         {profiles.length > 0 && (
@@ -195,9 +204,32 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 40,
+    paddingHorizontal: 8,
+  },
+  headerContent: {
+    flex: 1,
     alignItems: "center",
     gap: 8,
-    marginTop: 40,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#d1fae5",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    position: "absolute" as const,
+    right: 0,
+    top: 0,
   },
   logo: {
     fontSize: 48,

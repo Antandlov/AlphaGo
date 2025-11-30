@@ -29,6 +29,13 @@ function RootLayoutNav() {
       <Stack.Screen name="language-selection" options={{ headerShown: false }} />
       <Stack.Screen name="terms-of-service" options={{ headerShown: false }} />
       <Stack.Screen 
+        name="settings" 
+        options={{ 
+          presentation: "modal",
+          headerShown: false,
+        }} 
+      />
+      <Stack.Screen 
         name="history" 
         options={{ 
           title: "Scan History",

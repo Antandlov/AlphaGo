@@ -208,6 +208,20 @@ export const TRANSLATIONS: Record<Language, {
   grantPermission: string;
   scanInstruction: string;
   analyzingIngredients: string;
+  settings: string;
+  preferences: string;
+  language: string;
+  support: string;
+  howToUse: string;
+  howToUseDescription: string;
+  betaProgram: string;
+  betaProgramDescription: string;
+  legal: string;
+  termsOfServiceTitle: string;
+  termsDescription: string;
+  about: string;
+  aboutDescription: string;
+  settingsFooter: string;
 }> = {
   en: {
     languageSelection: {
@@ -225,6 +239,20 @@ export const TRANSLATIONS: Record<Language, {
     grantPermission: "Grant Permission",
     scanInstruction: "Hold steady and tap to focus if needed",
     analyzingIngredients: "Analyzing ingredients...",
+    settings: "Settings",
+    preferences: "Preferences",
+    language: "Language",
+    support: "Support & Information",
+    howToUse: "How to Use",
+    howToUseDescription: "Learn how to scan items",
+    betaProgram: "Beta Program",
+    betaProgramDescription: "Early access & updates",
+    legal: "Legal",
+    termsOfServiceTitle: "Terms of Service",
+    termsDescription: "View terms & disclaimer",
+    about: "About AlphaGo",
+    aboutDescription: "App version & information",
+    settingsFooter: "AlphaGo - Allergen-Safe Scanning",
   },
   es: {
     languageSelection: {
@@ -242,6 +270,20 @@ export const TRANSLATIONS: Record<Language, {
     grantPermission: "Conceder permiso",
     scanInstruction: "Mantén firme y toca para enfocar si es necesario",
     analyzingIngredients: "Analizando ingredientes...",
+    settings: "Configuración",
+    preferences: "Preferencias",
+    language: "Idioma",
+    support: "Soporte e Información",
+    howToUse: "Cómo usar",
+    howToUseDescription: "Aprende a escanear artículos",
+    betaProgram: "Programa Beta",
+    betaProgramDescription: "Acceso anticipado y actualizaciones",
+    legal: "Legal",
+    termsOfServiceTitle: "Términos de Servicio",
+    termsDescription: "Ver términos y descargo de responsabilidad",
+    about: "Acerca de AlphaGo",
+    aboutDescription: "Versión de la aplicación e información",
+    settingsFooter: "AlphaGo - Escaneo Seguro de Alérgenos",
   },
   hi: {
     languageSelection: {
@@ -259,6 +301,20 @@ export const TRANSLATIONS: Record<Language, {
     grantPermission: "अनुमति दें",
     scanInstruction: "स्थिर रखें और आवश्यकता होने पर फोकस करने के लिए टैप करें",
     analyzingIngredients: "सामग्री का विश्लेषण कर रहे हैं...",
+    settings: "सेटिंग्स",
+    preferences: "वरीयताएँ",
+    language: "भाषा",
+    support: "समर्थन और जानकारी",
+    howToUse: "कैसे उपयोग करें",
+    howToUseDescription: "वस्तुओं को स्कैन करना सीखें",
+    betaProgram: "बीटा कार्यक्रम",
+    betaProgramDescription: "प्रारंभिक पहुंच और अपडेट",
+    legal: "कानूनी",
+    termsOfServiceTitle: "सेवा की शर्तें",
+    termsDescription: "शर्तें और अस्वीकरण देखें",
+    about: "AlphaGo के बारे में",
+    aboutDescription: "ऐप संस्करण और जानकारी",
+    settingsFooter: "AlphaGo - एलर्जेन-सुरक्षित स्कैनिंग",
   },
   ar: {
     languageSelection: {
@@ -276,6 +332,20 @@ export const TRANSLATIONS: Record<Language, {
     grantPermission: "منح الإذن",
     scanInstruction: "امسك بثبات واضغط للتركيز إذا لزم الأمر",
     analyzingIngredients: "تحليل المكونات...",
+    settings: "الإعدادات",
+    preferences: "التفضيلات",
+    language: "اللغة",
+    support: "الدعم والمعلومات",
+    howToUse: "كيفية الاستخدام",
+    howToUseDescription: "تعلم كيفية مسح العناصر",
+    betaProgram: "برنامج بيتا",
+    betaProgramDescription: "الوصول المبكر والتحديثات",
+    legal: "قانوني",
+    termsOfServiceTitle: "شروط الخدمة",
+    termsDescription: "عرض الشروط وإخلاء المسؤولية",
+    about: "حول AlphaGo",
+    aboutDescription: "إصدار التطبيق والمعلومات",
+    settingsFooter: "AlphaGo - مسح آمن للحساسية",
   },
   pt: {
     languageSelection: {
@@ -293,6 +363,20 @@ export const TRANSLATIONS: Record<Language, {
     grantPermission: "Conceder permissão",
     scanInstruction: "Segure firme e toque para focar se necessário",
     analyzingIngredients: "Analisando ingredientes...",
+    settings: "Configurações",
+    preferences: "Preferências",
+    language: "Idioma",
+    support: "Suporte e Informações",
+    howToUse: "Como Usar",
+    howToUseDescription: "Aprenda a escanear itens",
+    betaProgram: "Programa Beta",
+    betaProgramDescription: "Acesso antecipado e atualizações",
+    legal: "Legal",
+    termsOfServiceTitle: "Termos de Serviço",
+    termsDescription: "Ver termos e isenção de responsabilidade",
+    about: "Sobre AlphaGo",
+    aboutDescription: "Versão do aplicativo e informações",
+    settingsFooter: "AlphaGo - Escaneamento Seguro de Alérgenos",
   },
   bn: {
     languageSelection: {
@@ -310,6 +394,20 @@ export const TRANSLATIONS: Record<Language, {
     grantPermission: "অনুমতি দিন",
     scanInstruction: "স্থির রাখুন এবং প্রয়োজন হলে ফোকাস করতে ট্যাপ করুন",
     analyzingIngredients: "উপাদান বিশ্লেষণ করা হচ্ছে...",
+    settings: "সেটিংস",
+    preferences: "পছন্দসমূহ",
+    language: "ভাষা",
+    support: "সমর্থন এবং তথ্য",
+    howToUse: "কীভাবে ব্যবহার করবেন",
+    howToUseDescription: "আইটেম স্কান করতে শিখুন",
+    betaProgram: "বিটা প্রোগ্রাম",
+    betaProgramDescription: "প্রাথমিক অ্যাক্সেস এবং আপডেট",
+    legal: "আইনি",
+    termsOfServiceTitle: "সেবার শর্তাবলী",
+    termsDescription: "শর্তাবলী এবং দাবি পরিত্যাগ দেখুন",
+    about: "AlphaGo সম্পর্কে",
+    aboutDescription: "অ্যাপ সংস্করণ এবং তথ্য",
+    settingsFooter: "AlphaGo - এলার্জেন-নিরাপদ স্ক্যানিং",
   },
   ru: {
     languageSelection: {
@@ -327,5 +425,19 @@ export const TRANSLATIONS: Record<Language, {
     grantPermission: "Предоставить разрешение",
     scanInstruction: "Держите крепко и коснитесь для фокусировки при необходимости",
     analyzingIngredients: "Анализ ингредиентов...",
+    settings: "Настройки",
+    preferences: "Предпочтения",
+    language: "Язык",
+    support: "Поддержка и информация",
+    howToUse: "Как использовать",
+    howToUseDescription: "Узнайте, как сканировать товары",
+    betaProgram: "Бета-программа",
+    betaProgramDescription: "Ранний доступ и обновления",
+    legal: "Юридическая информация",
+    termsOfServiceTitle: "Условия обслуживания",
+    termsDescription: "Просмотр условий и отказ от ответственности",
+    about: "О AlphaGo",
+    aboutDescription: "Версия приложения и информация",
+    settingsFooter: "AlphaGo - Безопасное сканирование аллергенов",
   },
 };
