@@ -9,6 +9,9 @@ import { IngredientDatabaseProvider } from "../contexts/ingredient-database";
 import { ProductDatabaseProvider } from "../contexts/product-database";
 import { ProfileProvider, useProfiles } from "../contexts/profiles";
 import { I18nContext, useI18n } from "../contexts/i18n";
+import { ScanCacheProvider } from "../contexts/scan-cache";
+import { ShoppingListProvider } from "../contexts/shopping-list";
+import { ThemeProvider } from "../contexts/theme";
 import LanguageSelectionScreen from "./language-selection";
 import TermsOfServiceScreen from "./terms-of-service";
 
@@ -114,17 +117,23 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <I18nContext>
-        <IngredientDatabaseProvider>
-          <ProductDatabaseProvider>
-            <ProfileProvider>
-              <ScanHistoryProvider>
-                <AppContent />
-              </ScanHistoryProvider>
-            </ProfileProvider>
-          </ProductDatabaseProvider>
-        </IngredientDatabaseProvider>
-      </I18nContext>
+      <ThemeProvider>
+        <I18nContext>
+          <IngredientDatabaseProvider>
+            <ProductDatabaseProvider>
+              <ProfileProvider>
+                <ScanHistoryProvider>
+                  <ScanCacheProvider>
+                    <ShoppingListProvider>
+                      <AppContent />
+                    </ShoppingListProvider>
+                  </ScanCacheProvider>
+                </ScanHistoryProvider>
+              </ProfileProvider>
+            </ProductDatabaseProvider>
+          </IngredientDatabaseProvider>
+        </I18nContext>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

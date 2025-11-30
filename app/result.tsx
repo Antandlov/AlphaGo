@@ -10,12 +10,17 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { X, CheckCircle2, XCircle, AlertTriangle, Check, Volume2 } from "lucide-react-native";
+import { X, CheckCircle2, XCircle, AlertTriangle, Check, Volume2, Share2, ShoppingCart, Lightbulb } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useScanHistory } from "../contexts/scan-history";
+import { useShoppingList } from "../contexts/shopping-list";
+import { useProfiles } from "../contexts/profiles";
 import { ALLERGENS } from "../constants/allergens";
 import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
+import * as Sharing from "expo-sharing";
+import { generateShareText } from "../utils/share-generator";
+import { getAllSafeAlternativesForScan } from "../utils/safe-alternatives";
 
 export default function ResultScreen() {
   const router = useRouter();
