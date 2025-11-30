@@ -19,6 +19,7 @@ import { useScanHistory } from "../contexts/scan-history";
 import { useIngredientDatabase } from "../contexts/ingredient-database";
 import { useProductDatabase } from "../contexts/product-database";
 import { useProfiles } from "../contexts/profiles";
+import { useI18n } from "../contexts/i18n";
 import { ScanResult } from "../types/scan";
 
 import { DATABASE_CONFIG } from "../constants/database-config";
@@ -51,6 +52,7 @@ export default function ScanScreen() {
   const { findIngredient, batchAddIngredients, logUpdate } = useIngredientDatabase();
   const { findProduct } = useProductDatabase();
   const { getCombinedAllergens } = useProfiles();
+  const { language, t } = useI18n();
   const scanButtonScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -80,8 +82,10 @@ export default function ScanScreen() {
 
         const combinedAllergens = getCombinedAllergens();
         const selectedAllergenInfo = combinedAllergens.map(id => ALLERGENS.find(a => a.id === id)).filter(Boolean);
+        const userLanguage = language || "en";
         
         console.log("Scanning for allergens:", selectedAllergenInfo.map(a => a?.name));
+        console.log("User's preferred language:", userLanguage);
 
         let allergenContext = "";
         selectedAllergenInfo.forEach(allergen => {
@@ -93,7 +97,17 @@ export default function ScanScreen() {
           }
         });
 
-        console.log("Calling generateText with allergen context...");
+        const languageNames: Record<string, string> = {
+          en: "English",
+          es: "Spanish",
+          hi: "Hindi",
+          ar: "Arabic",
+          pt: "Portuguese",
+          bn: "Bengali",
+          ru: "Russian",
+        };
+
+        console.log("Calling generateText with multi-language support...");
         const response = await generateText({
           messages: [
             {
@@ -103,21 +117,27 @@ export default function ScanScreen() {
                   type: "text",
                   text: `${allergenContext}
 
-Analyze the ingredient list in this image. Extract all ingredients and check them against the allergen lists above.
+IMPORTANT INSTRUCTIONS:
+1. The image may contain ingredients written in ANY language (Chinese, Japanese, Korean, Arabic, Spanish, etc.)
+2. Extract ALL ingredients from the image, regardless of the language they are written in
+3. Translate each ingredient name to English for allergen checking
+4. Check the translated English names against the allergen lists above
+5. After analysis, translate the ingredient names and explanations to ${languageNames[userLanguage]}
+6. The user speaks ${languageNames[userLanguage]}, so all output fields (productName, ingredient names, categories, explanations) must be in ${languageNames[userLanguage]}
 
-IMPORTANT: You must respond with ONLY valid JSON. No additional text before or after. Start with { and end with }.
+You must respond with ONLY valid JSON. No additional text before or after. Start with { and end with }.
 
 The JSON must follow this exact structure:
 {
-  "productName": "optional product name",
+  "productName": "product name in ${languageNames[userLanguage]}",
   "ingredients": [
     {
-      "name": "ingredient name",
+      "name": "ingredient name in ${languageNames[userLanguage]}",
       "isMammalBased": false,
-      "category": "optional category",
-      "explanation": "optional explanation",
+      "category": "category in ${languageNames[userLanguage]}",
+      "explanation": "explanation in ${languageNames[userLanguage]}",
       "requiresCaution": false,
-      "allergenIds": ["optional allergen ids"],
+      "allergenIds": ["allergen ids"],
       "isAllergen": false
     }
   ],
@@ -125,14 +145,16 @@ The JSON must follow this exact structure:
 }
 
 For each ingredient:
-1. Identify its name
-2. Check if it matches any allergen in the lists above
-3. Set isAllergen to true if it matches any allergen
-4. Set allergenIds to the list of allergen IDs this ingredient belongs to (e.g., ["dairy", "alpha-gal"])
-5. Set isMammalBased to true if it's from alpha-gal allergen list (for backwards compatibility)
-6. Set requiresCaution to true if the ingredient source is ambiguous
-7. Categorize it
-8. Provide a brief explanation if it contains allergens or needs caution
+1. Extract the ingredient name from the image (in whatever language it appears)
+2. Translate it to English internally for allergen checking
+3. Check if the English translation matches any allergen in the lists above
+4. Set isAllergen to true if it matches any allergen
+5. Set allergenIds to the list of allergen IDs this ingredient belongs to (e.g., ["dairy", "alpha-gal"])
+6. Set isMammalBased to true if it's from alpha-gal allergen list (for backwards compatibility)
+7. Set requiresCaution to true if the ingredient source is ambiguous
+8. Translate the ingredient name to ${languageNames[userLanguage]} for the output
+9. Categorize it in ${languageNames[userLanguage]}
+10. Provide a brief explanation in ${languageNames[userLanguage]} if it contains allergens or needs caution
 
 Provide the overall safety assessment:
 - "safe" if all ingredients are confirmed safe
@@ -238,16 +260,15 @@ Provide the overall safety assessment:
       <SafeAreaView style={styles.permissionContainer}>
         <View style={styles.permissionContent}>
           <Camera size={80} color="#10b981" strokeWidth={1.5} />
-          <Text style={styles.permissionTitle}>Camera Access Required</Text>
+          <Text style={styles.permissionTitle}>{t.cameraAccessRequired}</Text>
           <Text style={styles.permissionText}>
-            AlphaGo needs camera access to scan ingredient labels and help you
-            stay safe.
+            {t.cameraAccessDescription}
           </Text>
           <TouchableOpacity
             style={styles.permissionButton}
             onPress={requestPermission}
           >
-            <Text style={styles.permissionButtonText}>Grant Permission</Text>
+            <Text style={styles.permissionButtonText}>{t.grantPermission}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -312,7 +333,7 @@ Provide the overall safety assessment:
           </View>
 
           <Text style={styles.instructionText}>
-            Hold steady and tap to focus if needed
+            {t.scanInstruction}
           </Text>
         </View>
 
@@ -321,7 +342,7 @@ Provide the overall safety assessment:
             {analyzeMutation.isPending ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#10b981" />
-                <Text style={styles.loadingText}>Analyzing ingredients...</Text>
+                <Text style={styles.loadingText}>{t.analyzingIngredients}</Text>
               </View>
             ) : (
               <Animated.View

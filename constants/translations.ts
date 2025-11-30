@@ -203,6 +203,11 @@ export const TRANSLATIONS: Record<Language, {
     decline: string;
     viewTerms: string;
   };
+  cameraAccessRequired: string;
+  cameraAccessDescription: string;
+  grantPermission: string;
+  scanInstruction: string;
+  analyzingIngredients: string;
 }> = {
   en: {
     languageSelection: {
@@ -215,6 +220,11 @@ export const TRANSLATIONS: Record<Language, {
       decline: "Decline",
       viewTerms: "Terms of Service & Disclaimer",
     },
+    cameraAccessRequired: "Camera Access Required",
+    cameraAccessDescription: "AlphaGo needs camera access to scan ingredient labels and help you stay safe.",
+    grantPermission: "Grant Permission",
+    scanInstruction: "Hold steady and tap to focus if needed",
+    analyzingIngredients: "Analyzing ingredients...",
   },
   es: {
     languageSelection: {
@@ -227,6 +237,11 @@ export const TRANSLATIONS: Record<Language, {
       decline: "Rechazar",
       viewTerms: "Términos de Servicio y Descargo de Responsabilidad",
     },
+    cameraAccessRequired: "Se requiere acceso a la cámara",
+    cameraAccessDescription: "AlphaGo necesita acceso a la cámara para escanear etiquetas de ingredientes y ayudarte a mantenerte seguro.",
+    grantPermission: "Conceder permiso",
+    scanInstruction: "Mantén firme y toca para enfocar si es necesario",
+    analyzingIngredients: "Analizando ingredientes...",
   },
   hi: {
     languageSelection: {
@@ -239,6 +254,11 @@ export const TRANSLATIONS: Record<Language, {
       decline: "अस्वीकार करें",
       viewTerms: "सेवा की शर्तें और अस्वीकरण",
     },
+    cameraAccessRequired: "कैमरा एक्सेस आवश्यक है",
+    cameraAccessDescription: "AlphaGo को सामग्री लेबल स्कैन करने और आपको सुरक्षित रखने में मदद करने के लिए कैमरा एक्सेस की आवश्यकता है।",
+    grantPermission: "अनुमति दें",
+    scanInstruction: "स्थिर रखें और आवश्यकता होने पर फोकस करने के लिए टैप करें",
+    analyzingIngredients: "सामग्री का विश्लेषण कर रहे हैं...",
   },
   ar: {
     languageSelection: {
@@ -251,6 +271,11 @@ export const TRANSLATIONS: Record<Language, {
       decline: "رفض",
       viewTerms: "شروط الخدمة وإخلاء المسؤولية",
     },
+    cameraAccessRequired: "يتطلب الوصول إلى الكاميرا",
+    cameraAccessDescription: "يحتاج AlphaGo إلى الوصول إلى الكاميرا لمسح ملصقات المكونات ومساعدتك على البقاء آمنًا.",
+    grantPermission: "منح الإذن",
+    scanInstruction: "امسك بثبات واضغط للتركيز إذا لزم الأمر",
+    analyzingIngredients: "تحليل المكونات...",
   },
   pt: {
     languageSelection: {
@@ -263,6 +288,11 @@ export const TRANSLATIONS: Record<Language, {
       decline: "Recusar",
       viewTerms: "Termos de Serviço e Isenção de Responsabilidade",
     },
+    cameraAccessRequired: "Acesso à câmera necessário",
+    cameraAccessDescription: "AlphaGo precisa de acesso à câmera para escanear rótulos de ingredientes e ajudá-lo a ficar seguro.",
+    grantPermission: "Conceder permissão",
+    scanInstruction: "Segure firme e toque para focar se necessário",
+    analyzingIngredients: "Analisando ingredientes...",
   },
   bn: {
     languageSelection: {
@@ -275,6 +305,11 @@ export const TRANSLATIONS: Record<Language, {
       decline: "প্রত্যাখ্যান করুন",
       viewTerms: "সেবার শর্তাবলী এবং দাবি পরিত্যাগ",
     },
+    cameraAccessRequired: "ক্যামেরা অ্যাক্সেস প্রয়োজন",
+    cameraAccessDescription: "AlphaGo-কে উপাদান লেবেল স্কান করতে এবং আপনাকে নিরাপদ থাকতে সাহায্য করতে ক্যামেরা অ্যাক্সেস প্রয়োজন।",
+    grantPermission: "অনুমতি দিন",
+    scanInstruction: "স্থির রাখুন এবং প্রয়োজন হলে ফোকাস করতে ট্যাপ করুন",
+    analyzingIngredients: "উপাদান বিশ্লেষণ করা হচ্ছে...",
   },
   ru: {
     languageSelection: {
@@ -287,5 +322,10 @@ export const TRANSLATIONS: Record<Language, {
       decline: "Отклонить",
       viewTerms: "Условия обслуживания и отказ от ответственности",
     },
+    cameraAccessRequired: "Требуется доступ к камере",
+    cameraAccessDescription: "AlphaGo нужен доступ к камере для сканирования этикеток ингредиентов и помощи в безопасности.",
+    grantPermission: "Предоставить разрешение",
+    scanInstruction: "Держите крепко и коснитесь для фокусировки при необходимости",
+    analyzingIngredients: "Анализ ингредиентов...",
   },
 };
