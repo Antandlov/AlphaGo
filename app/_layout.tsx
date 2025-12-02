@@ -21,51 +21,53 @@ const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerBackTitle: "Back" }}>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="scan" options={{ headerShown: false }} />
-      <Stack.Screen name="report-bug" options={{ headerShown: false }} />
-      <Stack.Screen name="report-product" options={{ headerShown: false }} />
-      <Stack.Screen name="beta-feedback" options={{ headerShown: false }} />
-      <Stack.Screen name="beta-info" options={{ headerShown: false }} />
-      <Stack.Screen name="how-to-use" options={{ headerShown: true }} />
-      <Stack.Screen name="language-selection" options={{ headerShown: false }} />
-      <Stack.Screen name="terms-of-service" options={{ headerShown: false }} />
-      <Stack.Screen 
-        name="settings" 
-        options={{ 
-          presentation: "modal",
-          headerShown: false,
-        }} 
-      />
-      <Stack.Screen 
-        name="history" 
-        options={{ 
-          title: "Scan History",
-          headerStyle: {
-            backgroundColor: "#10b981",
-          },
-          headerTintColor: "#fff",
-        }} 
-      />
-      <Stack.Screen 
-        name="result" 
-        options={{ 
-          presentation: "modal",
-          headerShown: false,
-        }} 
-      />
-      <Stack.Screen 
-        name="profiles" 
-        options={{ 
-          title: "Family Profiles",
-          headerStyle: {
-            backgroundColor: "#10b981",
-          },
-          headerTintColor: "#fff",
-        }} 
-      />
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerBackTitle: "Back" }}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="scan" options={{ headerShown: false }} />
+        <Stack.Screen name="report-bug" options={{ headerShown: false }} />
+        <Stack.Screen name="report-product" options={{ headerShown: false }} />
+        <Stack.Screen name="beta-feedback" options={{ headerShown: false }} />
+        <Stack.Screen name="beta-info" options={{ headerShown: false }} />
+        <Stack.Screen name="how-to-use" options={{ headerShown: true }} />
+        <Stack.Screen name="language-selection" options={{ headerShown: false }} />
+        <Stack.Screen name="terms-of-service" options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="settings" 
+          options={{ 
+            presentation: "modal",
+            headerShown: false,
+          }} 
+        />
+        <Stack.Screen 
+          name="history" 
+          options={{ 
+            title: "Scan History",
+            headerStyle: {
+              backgroundColor: "#10b981",
+            },
+            headerTintColor: "#fff",
+          }} 
+        />
+        <Stack.Screen 
+          name="result" 
+          options={{ 
+            presentation: "modal",
+            headerShown: false,
+          }} 
+        />
+        <Stack.Screen 
+          name="profiles" 
+          options={{ 
+            title: "Family Profiles",
+            headerStyle: {
+              backgroundColor: "#10b981",
+            },
+            headerTintColor: "#fff",
+          }} 
+        />
+      </Stack>
+    </GestureHandlerRootView>
   );
 }
 
@@ -107,11 +109,7 @@ function AppContent() {
 
   console.log("[AppContent] App ready, rendering navigation");
 
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <RootLayoutNav />
-    </GestureHandlerRootView>
-  );
+  return <RootLayoutNav />;
 }
 
 export default function RootLayout() {
