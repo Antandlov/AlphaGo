@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Animated,
-
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Camera, History, Scan } from "lucide-react-native";
@@ -252,17 +252,34 @@ Provide the overall safety assessment:
     console.log("[Camera] Requesting camera permission...");
     setIsRequestingPermission(true);
     try {
-      const result = await requestPermission();
-      console.log("[Camera] Permission result:", result);
-      if (!result.granted) {
-        console.log("[Camera] Permission denied");
-        alert("Camera permission is required to scan ingredients. Please enable it in your device settings.");
+      if (Platform.OS === 'web') {
+        console.log("[Camera] Web platform detected - browser will handle permission");
+        const result = await requestPermission();
+        console.log("[Camera] Permission result:", result);
+        
+        if (!result.granted) {
+          console.log("[Camera] Permission denied on web");
+          alert("Camera access was denied. Please click the camera icon in your browser's address bar to enable camera access, then refresh the page.");
+        } else {
+          console.log("[Camera] Permission granted on web");
+        }
       } else {
-        console.log("[Camera] Permission granted successfully");
+        const result = await requestPermission();
+        console.log("[Camera] Permission result:", result);
+        if (!result.granted) {
+          console.log("[Camera] Permission denied");
+          alert("Camera permission is required to scan ingredients. Please enable it in your device settings.");
+        } else {
+          console.log("[Camera] Permission granted successfully");
+        }
       }
     } catch (error) {
       console.error("[Camera] Error requesting permission:", error);
-      alert("Failed to request camera permission. Please try again.");
+      if (Platform.OS === 'web') {
+        alert("Unable to access camera. Please:\n1. Make sure you're using HTTPS\n2. Check your browser's camera permissions\n3. Try refreshing the page");
+      } else {
+        alert("Failed to request camera permission. Please try again.");
+      }
     } finally {
       setIsRequestingPermission(false);
     }
@@ -287,6 +304,11 @@ Provide the overall safety assessment:
           <Text style={styles.permissionText}>
             {t.cameraAccessDescription}
           </Text>
+          {Platform.OS === 'web' && (
+            <Text style={styles.webNote}>
+              Your browser will ask for camera access when you click below.
+            </Text>
+          )}
           <TouchableOpacity
             style={[styles.permissionButton, isRequestingPermission && styles.permissionButtonDisabled]}
             onPress={handleRequestPermission}
@@ -593,5 +615,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600" as const,
     color: "#6b7280",
+  },
+  webNote: {
+    fontSize: 14,
+    color: "#10b981",
+    textAlign: "center",
+    fontWeight: "500" as const,
+    fontStyle: "italic" as const,
   },
 });
