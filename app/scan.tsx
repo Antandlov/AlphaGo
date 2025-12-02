@@ -46,6 +46,7 @@ export default function ScanScreen() {
   const [facing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
   const { addScan } = useScanHistory();
@@ -247,7 +248,28 @@ Provide the overall safety assessment:
     },
   });
 
+  const handleRequestPermission = async () => {
+    console.log("[Camera] Requesting camera permission...");
+    setIsRequestingPermission(true);
+    try {
+      const result = await requestPermission();
+      console.log("[Camera] Permission result:", result);
+      if (!result.granted) {
+        console.log("[Camera] Permission denied");
+        alert("Camera permission is required to scan ingredients. Please enable it in your device settings.");
+      } else {
+        console.log("[Camera] Permission granted successfully");
+      }
+    } catch (error) {
+      console.error("[Camera] Error requesting permission:", error);
+      alert("Failed to request camera permission. Please try again.");
+    } finally {
+      setIsRequestingPermission(false);
+    }
+  };
+
   if (!permission) {
+    console.log("[Camera] Permission object not ready");
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#10b981" />
@@ -256,6 +278,7 @@ Provide the overall safety assessment:
   }
 
   if (!permission.granted) {
+    console.log("[Camera] Permission not granted, showing permission screen");
     return (
       <SafeAreaView style={styles.permissionContainer}>
         <View style={styles.permissionContent}>
@@ -265,15 +288,28 @@ Provide the overall safety assessment:
             {t.cameraAccessDescription}
           </Text>
           <TouchableOpacity
-            style={styles.permissionButton}
-            onPress={requestPermission}
+            style={[styles.permissionButton, isRequestingPermission && styles.permissionButtonDisabled]}
+            onPress={handleRequestPermission}
+            disabled={isRequestingPermission}
           >
-            <Text style={styles.permissionButtonText}>{t.grantPermission}</Text>
+            {isRequestingPermission ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.permissionButtonText}>{t.grantPermission}</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.backToHomeButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backToHomeButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
+
+  console.log("[Camera] Permission granted, showing camera");
 
   const handleCapture = async () => {
     if (cameraRef.current && !analyzeMutation.isPending) {
@@ -532,10 +568,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
+    minWidth: 200,
+    alignItems: "center",
+  },
+  permissionButtonDisabled: {
+    opacity: 0.6,
   },
   permissionButtonText: {
     fontSize: 16,
     fontWeight: "600" as const,
     color: "#fff",
+  },
+  backToHomeButton: {
+    marginTop: 16,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: "#e5e7eb",
+  },
+  backToHomeButtonText: {
+    fontSize: 16,
+    fontWeight: "600" as const,
+    color: "#6b7280",
   },
 });
