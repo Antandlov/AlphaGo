@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Animated,
-  Pressable,
+
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Camera, History, Scan } from "lucide-react-native";
@@ -344,19 +344,21 @@ Provide the overall safety assessment:
       >
         <SafeAreaView style={styles.safeArea} edges={["top"]}>
           <View style={styles.header}>
-            <Pressable
+            <TouchableOpacity
               style={styles.backButton}
               onPress={() => router.back()}
+              activeOpacity={0.7}
             >
               <Text style={styles.backButtonText}>←</Text>
-            </Pressable>
+            </TouchableOpacity>
             <Text style={styles.logo}>AlphaGo</Text>
-            <Pressable
+            <TouchableOpacity
               style={styles.historyButton}
               onPress={() => router.push("/history")}
+              activeOpacity={0.7}
             >
               <History size={24} color="#fff" />
-            </Pressable>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
 
@@ -387,12 +389,13 @@ Provide the overall safety assessment:
                   { transform: [{ scale: scanButtonScale }] },
                 ]}
               >
-                <Pressable
+                <TouchableOpacity
                   style={styles.captureButton}
                   onPress={handleCapture}
+                  activeOpacity={0.8}
                 >
                   <Scan size={32} color="#fff" />
-                </Pressable>
+                </TouchableOpacity>
               </Animated.View>
             )}
           </View>
