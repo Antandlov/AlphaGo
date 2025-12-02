@@ -252,31 +252,23 @@ Provide the overall safety assessment:
     console.log("[Camera] Requesting camera permission...");
     setIsRequestingPermission(true);
     try {
-      if (Platform.OS === 'web') {
-        console.log("[Camera] Web platform detected - browser will handle permission");
-        const result = await requestPermission();
-        console.log("[Camera] Permission result:", result);
-        
-        if (!result.granted) {
-          console.log("[Camera] Permission denied on web");
-          alert("Camera access was denied. Please click the camera icon in your browser's address bar to enable camera access, then refresh the page.");
+      const result = await requestPermission();
+      console.log("[Camera] Permission result:", result);
+      
+      if (!result.granted) {
+        console.log("[Camera] Permission denied");
+        if (Platform.OS === 'web') {
+          alert("Camera access was denied. Please:\n\n1. Click the camera icon in your browser's address bar\n2. Select 'Allow' for camera access\n3. Click 'Grant Permission' again\n\nOr refresh the page and try again.");
         } else {
-          console.log("[Camera] Permission granted on web");
+          alert("Camera permission is required to scan ingredients. Please enable it in your device settings.");
         }
       } else {
-        const result = await requestPermission();
-        console.log("[Camera] Permission result:", result);
-        if (!result.granted) {
-          console.log("[Camera] Permission denied");
-          alert("Camera permission is required to scan ingredients. Please enable it in your device settings.");
-        } else {
-          console.log("[Camera] Permission granted successfully");
-        }
+        console.log("[Camera] Permission granted successfully");
       }
     } catch (error) {
       console.error("[Camera] Error requesting permission:", error);
       if (Platform.OS === 'web') {
-        alert("Unable to access camera. Please:\n1. Make sure you're using HTTPS\n2. Check your browser's camera permissions\n3. Try refreshing the page");
+        alert("Unable to access camera. Please:\n\n1. Make sure you're using HTTPS (https://)\n2. Check your browser allows camera access\n3. Try using Chrome or Safari\n4. Refresh the page and try again");
       } else {
         alert("Failed to request camera permission. Please try again.");
       }
@@ -306,7 +298,7 @@ Provide the overall safety assessment:
           </Text>
           {Platform.OS === 'web' && (
             <Text style={styles.webNote}>
-              Your browser will ask for camera access when you click below.
+              📷 Your browser will ask for camera access. Make sure to click &ldquo;Allow&rdquo; when prompted.
             </Text>
           )}
           <TouchableOpacity
