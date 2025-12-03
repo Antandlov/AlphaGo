@@ -79,8 +79,9 @@ export default function ScanScreen() {
   const analyzeMutation = useMutation({
     mutationFn: async (imageUri: string) => {
       try {
-        console.log("Starting ingredient analysis...");
-        console.log("[Option B Ready] findProduct available for future database-first lookup:", !!findProduct);
+        console.log("[Scan] Starting ingredient analysis...");
+        console.log("[Scan] Project ID: rgnn5afmshztp4xufngmk");
+        console.log("[Scan] findProduct available:", !!findProduct);
 
         const combinedAllergens = getCombinedAllergens();
         const selectedAllergenInfo = combinedAllergens.map(id => ALLERGENS.find(a => a.id === id)).filter(Boolean);
@@ -109,7 +110,7 @@ export default function ScanScreen() {
           ru: "Russian",
         };
 
-        console.log("Calling generateText with multi-language support...");
+        console.log("[Scan] Calling generateText API...");
         const response = await generateText({
           messages: [
             {
@@ -171,7 +172,7 @@ Provide the overall safety assessment:
             },
           ],
         });
-        console.log("Raw response:", response.substring(0, 200));
+        console.log("[Scan] Raw response:", response.substring(0, 200));
         
         let jsonText = response.trim();
         const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
@@ -179,10 +180,10 @@ Provide the overall safety assessment:
           jsonText = jsonMatch[0];
         }
         
-        console.log("Parsing JSON...");
+        console.log("[Scan] Parsing JSON response...");
         const parsed = JSON.parse(jsonText);
         const analysis = AnalysisSchema.parse(parsed);
-        console.log("Analysis complete successfully");
+        console.log("[Scan] Analysis completed successfully");
 
         if (DATABASE_CONFIG.ENABLE_INGREDIENT_DATABASE) {
           const newIngredients: IngredientDatabase[] = analysis.ingredients.map((ing: z.infer<typeof IngredientSchema>) => ({
@@ -213,11 +214,17 @@ Provide the overall safety assessment:
 
         return analysis;
       } catch (error) {
-        console.error("Error during analysis:", error);
+        console.error("[Scan] ERROR during analysis:", error);
         if (error instanceof Error) {
-          console.error("Error message:", error.message);
-          console.error("Error stack:", error.stack);
+          console.error("[Scan] Error name:", error.name);
+          console.error("[Scan] Error message:", error.message);
+          console.error("[Scan] Error stack:", error.stack);
         }
+        
+        if (error instanceof Error && error.message.includes('ERR_NGROK')) {
+          throw new Error("AI service connection failed. Please ensure you're running the app through the Rork platform or check your network connection.");
+        }
+        
         throw error;
       }
     },
