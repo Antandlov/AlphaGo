@@ -13,11 +13,17 @@ export default function HomeScreen() {
     router.push("/how-to-use");
   };
 
-  const toggleProfile = (profileId: string) => {
-    if (selectedProfileIds.includes(profileId)) {
-      setSelectedProfileIds(selectedProfileIds.filter((id) => id !== profileId));
-    } else {
-      setSelectedProfileIds([...selectedProfileIds, profileId]);
+  const toggleProfile = async (profileId: string) => {
+    try {
+      console.log("[HomeScreen] Toggling profile:", profileId);
+      if (selectedProfileIds.includes(profileId)) {
+        await setSelectedProfileIds(selectedProfileIds.filter((id) => id !== profileId));
+      } else {
+        await setSelectedProfileIds([...selectedProfileIds, profileId]);
+      }
+      console.log("[HomeScreen] Profile toggled successfully");
+    } catch (error) {
+      console.error("[HomeScreen] Error toggling profile:", error);
     }
   };
 

@@ -141,7 +141,7 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
     }
   }, []);
 
-  const addProfile = useCallback((name: string, allergens: string[]) => {
+  const addProfile = useCallback(async (name: string, allergens: string[]) => {
     const newProfile: Profile = {
       id: Date.now().toString(),
       name,
@@ -150,28 +150,28 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
     };
 
     const updated = [...profiles, newProfile];
-    saveProfiles(updated);
+    await saveProfiles(updated);
   }, [profiles, saveProfiles]);
 
-  const updateProfile = useCallback((id: string, name: string, allergens: string[]) => {
+  const updateProfile = useCallback(async (id: string, name: string, allergens: string[]) => {
     const updated = profiles.map((p) =>
       p.id === id ? { ...p, name, allergens } : p
     );
-    saveProfiles(updated);
+    await saveProfiles(updated);
   }, [profiles, saveProfiles]);
 
-  const deleteProfile = useCallback((id: string) => {
+  const deleteProfile = useCallback(async (id: string) => {
     const updated = profiles.filter((p) => p.id !== id);
-    saveProfiles(updated);
+    await saveProfiles(updated);
 
     if (selectedProfileIds.includes(id)) {
       const newSelected = selectedProfileIds.filter((pid) => pid !== id);
-      saveSelectedProfiles(newSelected);
+      await saveSelectedProfiles(newSelected);
     }
   }, [profiles, selectedProfileIds, saveProfiles, saveSelectedProfiles]);
 
-  const setSelectedProfiles = useCallback((ids: string[]) => {
-    saveSelectedProfiles(ids);
+  const setSelectedProfiles = useCallback(async (ids: string[]) => {
+    await saveSelectedProfiles(ids);
   }, [saveSelectedProfiles]);
 
   const getCombinedAllergens = useCallback((): string[] => {

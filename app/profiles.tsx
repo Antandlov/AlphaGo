@@ -22,6 +22,7 @@ export default function ProfilesScreen() {
   const [profileName, setProfileName] = useState("");
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [customAllergens, setCustomAllergens] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const openAddModal = () => {
     setEditingProfile(null);
@@ -48,7 +49,7 @@ export default function ProfilesScreen() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!profileName.trim()) {
       Alert.alert("Error", "Please enter a profile name");
       return;
@@ -62,17 +63,28 @@ export default function ProfilesScreen() {
       return;
     }
 
-    if (editingProfile) {
-      updateProfile(editingProfile, profileName.trim(), allAllergens);
-    } else {
-      addProfile(profileName.trim(), allAllergens);
+    try {
+      setIsSaving(true);
+      console.log("[ProfilesScreen] Saving profile...", { profileName, allergens: allAllergens });
+      
+      if (editingProfile) {
+        await updateProfile(editingProfile, profileName.trim(), allAllergens);
+      } else {
+        await addProfile(profileName.trim(), allAllergens);
+      }
+      
+      console.log("[ProfilesScreen] Profile saved successfully");
+      setModalVisible(false);
+      setProfileName("");
+      setSelectedAllergens([]);
+      setCustomAllergens([]);
+      setEditingProfile(null);
+    } catch (error) {
+      console.error("[ProfilesScreen] Error saving profile:", error);
+      Alert.alert("Error", "Failed to save profile. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
-
-    setModalVisible(false);
-    setProfileName("");
-    setSelectedAllergens([]);
-    setCustomAllergens([]);
-    setEditingProfile(null);
   };
 
   const handleDelete = (profileId: string) => {
@@ -84,7 +96,16 @@ export default function ProfilesScreen() {
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => deleteProfile(profileId),
+          onPress: async () => {
+            try {
+              console.log("[ProfilesScreen] Deleting profile:", profileId);
+              await deleteProfile(profileId);
+              console.log("[ProfilesScreen] Profile deleted successfully");
+            } catch (error) {
+              console.error("[ProfilesScreen] Error deleting profile:", error);
+              Alert.alert("Error", "Failed to delete profile. Please try again.");
+            }
+          },
         },
       ]
     );
@@ -179,10 +200,11 @@ export default function ProfilesScreen() {
                   <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.modalButton, styles.saveButton]}
+                  style={[styles.modalButton, styles.saveButton, isSaving && styles.saveButtonDisabled]}
                   onPress={handleSave}
+                  disabled={isSaving}
                 >
-                  <Text style={styles.saveButtonText}>Save</Text>
+                  <Text style={styles.saveButtonText}>{isSaving ? "Saving..." : "Save"}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -489,6 +511,10 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: "#10b981",
+  },
+  saveButtonDisabled: {
+    backgroundColor: "#9ca3af",
+    opacity: 0.6,
   },
   saveButtonText: {
     fontSize: 16,

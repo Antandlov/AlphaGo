@@ -7,10 +7,11 @@ export interface Profile {
 
 export interface ProfileContextType {
   profiles: Profile[];
-  addProfile: (name: string, allergens: string[]) => void;
-  updateProfile: (id: string, name: string, allergens: string[]) => void;
-  deleteProfile: (id: string) => void;
+  addProfile: (name: string, allergens: string[]) => Promise<void>;
+  updateProfile: (id: string, name: string, allergens: string[]) => Promise<void>;
+  deleteProfile: (id: string) => Promise<void>;
   selectedProfileIds: string[];
-  setSelectedProfileIds: (ids: string[]) => void;
+  setSelectedProfileIds: (ids: string[]) => Promise<void>;
   getCombinedAllergens: () => string[];
+  isLoaded: boolean;
 }
