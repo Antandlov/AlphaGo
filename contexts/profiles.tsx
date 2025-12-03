@@ -119,54 +119,82 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
 
   const saveProfiles = useCallback(async (newProfiles: Profile[]) => {
     try {
+      console.log("[ProfileProvider] Saving profiles to storage:", newProfiles.length);
       await secureSetItem(
         PROFILES_STORAGE_KEY,
         JSON.stringify(newProfiles)
       );
       setProfiles(newProfiles);
+      console.log("[ProfileProvider] Profiles saved successfully");
     } catch (error) {
-      console.error("Failed to save profiles:", error);
+      console.error("[ProfileProvider] Failed to save profiles:", error);
+      throw error;
     }
   }, []);
 
   const saveSelectedProfiles = useCallback(async (ids: string[]) => {
     try {
+      console.log("[ProfileProvider] Saving selected profiles:", ids.length);
       await secureSetItem(
         SELECTED_PROFILES_STORAGE_KEY,
         JSON.stringify(ids)
       );
       setSelectedProfileIds(ids);
+      console.log("[ProfileProvider] Selected profiles saved successfully");
     } catch (error) {
-      console.error("Failed to save selected profiles:", error);
+      console.error("[ProfileProvider] Failed to save selected profiles:", error);
+      throw error;
     }
   }, []);
 
   const addProfile = useCallback(async (name: string, allergens: string[]) => {
-    const newProfile: Profile = {
-      id: Date.now().toString(),
-      name,
-      allergens,
-      createdAt: Date.now(),
-    };
+    try {
+      console.log("[ProfileProvider] Adding new profile:", { name, allergens });
+      const newProfile: Profile = {
+        id: Date.now().toString(),
+        name,
+        allergens,
+        createdAt: Date.now(),
+      };
 
-    const updated = [...profiles, newProfile];
-    await saveProfiles(updated);
+      const updated = [...profiles, newProfile];
+      await saveProfiles(updated);
+      console.log("[ProfileProvider] Profile added successfully, total profiles:", updated.length);
+      return newProfile;
+    } catch (error) {
+      console.error("[ProfileProvider] Failed to add profile:", error);
+      throw error;
+    }
   }, [profiles, saveProfiles]);
 
   const updateProfile = useCallback(async (id: string, name: string, allergens: string[]) => {
-    const updated = profiles.map((p) =>
-      p.id === id ? { ...p, name, allergens } : p
-    );
-    await saveProfiles(updated);
+    try {
+      console.log("[ProfileProvider] Updating profile:", { id, name, allergens });
+      const updated = profiles.map((p) =>
+        p.id === id ? { ...p, name, allergens } : p
+      );
+      await saveProfiles(updated);
+      console.log("[ProfileProvider] Profile updated successfully");
+    } catch (error) {
+      console.error("[ProfileProvider] Failed to update profile:", error);
+      throw error;
+    }
   }, [profiles, saveProfiles]);
 
   const deleteProfile = useCallback(async (id: string) => {
-    const updated = profiles.filter((p) => p.id !== id);
-    await saveProfiles(updated);
+    try {
+      console.log("[ProfileProvider] Deleting profile:", id);
+      const updated = profiles.filter((p) => p.id !== id);
+      await saveProfiles(updated);
 
-    if (selectedProfileIds.includes(id)) {
-      const newSelected = selectedProfileIds.filter((pid) => pid !== id);
-      await saveSelectedProfiles(newSelected);
+      if (selectedProfileIds.includes(id)) {
+        const newSelected = selectedProfileIds.filter((pid) => pid !== id);
+        await saveSelectedProfiles(newSelected);
+      }
+      console.log("[ProfileProvider] Profile deleted successfully");
+    } catch (error) {
+      console.error("[ProfileProvider] Failed to delete profile:", error);
+      throw error;
     }
   }, [profiles, selectedProfileIds, saveProfiles, saveSelectedProfiles]);
 

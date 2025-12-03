@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Animated,
   Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Camera, History, Scan } from "lucide-react-native";
@@ -253,14 +254,28 @@ Provide the overall safety assessment:
     setIsRequestingPermission(true);
     try {
       const result = await requestPermission();
-      console.log("[Camera] Permission result:", result);
+      console.log("[Camera] Permission result:", JSON.stringify(result));
+      
+      if (!result) {
+        console.error("[Camera] No result from permission request");
+        throw new Error("Permission request returned null");
+      }
       
       if (!result.granted) {
         console.log("[Camera] Permission denied");
         if (Platform.OS === 'web') {
-          alert("Camera access was denied. Please:\n\n1. Click the camera icon in your browser's address bar\n2. Select 'Allow' for camera access\n3. Click 'Grant Permission' again\n\nOr refresh the page and try again.");
+          Alert.alert(
+            "Camera Access Denied",
+            "To use the scanner, please:\n\n1. Click the camera icon in your browser's address bar\n2. Select 'Allow' for camera access\n3. Click 'Grant Permission' again\n\nOr refresh the page and try again."
+          );
         } else {
-          alert("Camera permission is required to scan ingredients. Please enable it in your device settings.");
+          Alert.alert(
+            "Camera Permission Required",
+            "Camera permission is required to scan ingredients. Please enable it in your device settings.",
+            [
+              { text: "OK", style: "default" }
+            ]
+          );
         }
       } else {
         console.log("[Camera] Permission granted successfully");
@@ -268,9 +283,15 @@ Provide the overall safety assessment:
     } catch (error) {
       console.error("[Camera] Error requesting permission:", error);
       if (Platform.OS === 'web') {
-        alert("Unable to access camera. Please:\n\n1. Make sure you're using HTTPS (https://)\n2. Check your browser allows camera access\n3. Try using Chrome or Safari\n4. Refresh the page and try again");
+        Alert.alert(
+          "Camera Access Error",
+          "Unable to access camera. Please:\n\n1. Make sure you're using HTTPS (https://)\n2. Check your browser allows camera access\n3. Try using Chrome or Safari\n4. Refresh the page and try again"
+        );
       } else {
-        alert("Failed to request camera permission. Please try again.");
+        Alert.alert(
+          "Error",
+          "Failed to request camera permission. Please try again or check your device settings."
+        );
       }
     } finally {
       setIsRequestingPermission(false);

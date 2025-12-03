@@ -69,8 +69,10 @@ export default function ProfilesScreen() {
       
       if (editingProfile) {
         await updateProfile(editingProfile, profileName.trim(), allAllergens);
+        Alert.alert("Success", "Profile updated successfully!");
       } else {
         await addProfile(profileName.trim(), allAllergens);
+        Alert.alert("Success", "Profile added successfully!");
       }
       
       console.log("[ProfilesScreen] Profile saved successfully");
@@ -81,7 +83,8 @@ export default function ProfilesScreen() {
       setEditingProfile(null);
     } catch (error) {
       console.error("[ProfilesScreen] Error saving profile:", error);
-      Alert.alert("Error", "Failed to save profile. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      Alert.alert("Error", `Failed to save profile. ${errorMessage}\n\nPlease try again or contact support if the problem persists.`);
     } finally {
       setIsSaving(false);
     }
