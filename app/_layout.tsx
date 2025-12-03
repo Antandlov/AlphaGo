@@ -14,6 +14,7 @@ import { ShoppingListProvider } from "../contexts/shopping-list";
 import { ThemeProvider } from "../contexts/theme";
 import LanguageSelectionScreen from "./language-selection";
 import TermsOfServiceScreen from "./terms-of-service";
+import { runAllMigrations } from "../utils/data-migration";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -75,10 +76,26 @@ function AppContent() {
   const { isLoaded } = useProfiles();
   const { language, tosAccepted, isLoaded: i18nLoaded } = useI18n();
   const [appReady, setAppReady] = useState(false);
+  const [migrationsRun, setMigrationsRun] = useState(false);
 
   useEffect(() => {
-    console.log("[AppContent] isLoaded:", isLoaded, "i18nLoaded:", i18nLoaded, "appReady:", appReady);
-    if (isLoaded && i18nLoaded && !appReady) {
+    if (!migrationsRun) {
+      console.log("[AppContent] Running data migrations for backwards compatibility...");
+      runAllMigrations()
+        .then(() => {
+          console.log("[AppContent] Migrations completed");
+          setMigrationsRun(true);
+        })
+        .catch((error) => {
+          console.error("[AppContent] Migrations failed:", error);
+          setMigrationsRun(true);
+        });
+    }
+  }, [migrationsRun]);
+
+  useEffect(() => {
+    console.log("[AppContent] isLoaded:", isLoaded, "i18nLoaded:", i18nLoaded, "migrationsRun:", migrationsRun, "appReady:", appReady);
+    if (isLoaded && i18nLoaded && migrationsRun && !appReady) {
       console.log("[AppContent] Setting app ready and hiding splash screen");
       setAppReady(true);
       setTimeout(() => {
@@ -86,7 +103,7 @@ function AppContent() {
         console.log("[AppContent] Splash screen hidden");
       }, 100);
     }
-  }, [isLoaded, i18nLoaded, appReady]);
+  }, [isLoaded, i18nLoaded, migrationsRun, appReady]);
 
   if (!appReady) {
     console.log("[AppContent] App not ready yet, showing loading screen");

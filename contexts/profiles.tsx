@@ -120,15 +120,22 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
   const saveProfiles = useCallback(async (newProfiles: Profile[]) => {
     try {
       console.log("[ProfileProvider] Saving profiles to storage:", newProfiles.length);
+      const serialized = JSON.stringify(newProfiles);
+      console.log("[ProfileProvider] Serialized data length:", serialized.length);
+      
       await secureSetItem(
         PROFILES_STORAGE_KEY,
-        JSON.stringify(newProfiles)
+        serialized
       );
+      
       setProfiles(newProfiles);
       console.log("[ProfileProvider] Profiles saved successfully");
     } catch (error) {
       console.error("[ProfileProvider] Failed to save profiles:", error);
-      throw error;
+      if (error instanceof Error) {
+        console.error("[ProfileProvider] Error details:", error.message, error.stack);
+      }
+      throw new Error("Failed to save profile to device storage. Please check if you have enough storage space.");
     }
   }, []);
 
@@ -160,6 +167,15 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
       const updated = [...profiles, newProfile];
       await saveProfiles(updated);
       console.log("[ProfileProvider] Profile added successfully, total profiles:", updated.length);
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const verified = await secureGetItem(PROFILES_STORAGE_KEY);
+      if (verified) {
+        const verifiedProfiles = JSON.parse(verified);
+        console.log("[ProfileProvider] Verified saved profiles count:", verifiedProfiles.length);
+      }
+      
       return newProfile;
     } catch (error) {
       console.error("[ProfileProvider] Failed to add profile:", error);

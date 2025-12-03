@@ -221,8 +221,13 @@ Provide the overall safety assessment:
           console.error("[Scan] Error stack:", error.stack);
         }
         
-        if (error instanceof Error && error.message.includes('ERR_NGROK')) {
-          throw new Error("AI service connection failed. Please ensure you're running the app through the Rork platform or check your network connection.");
+        if (error instanceof Error) {
+          if (error.message.includes('ERR_NGROK') || error.message.includes('3200')) {
+            throw new Error("AI service is not available. Please ensure you're connected to the internet and running the app through the Rork platform. If this persists, try restarting the app.");
+          }
+          if (error.message.includes('fetch') || error.message.includes('network')) {
+            throw new Error("Network connection failed. Please check your internet connection and try again.");
+          }
         }
         
         throw error;
@@ -252,7 +257,21 @@ Provide the overall safety assessment:
         console.error("[Analysis Error] Error name:", error.name);
         console.error("[Analysis Error] Error message:", error.message);
       }
-      alert("Failed to analyze the image. Please try again.\n\nError: " + (error instanceof Error ? error.message : "Unknown error"));
+      
+      let userMessage = "Failed to analyze the image. Please try again.";
+      if (error instanceof Error) {
+        if (error.message.includes('ERR_NGROK') || error.message.includes('3200') || error.message.includes('AI service')) {
+          userMessage = error.message + "\n\nTip: Make sure you're running this through the Rork platform with an active internet connection.";
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          userMessage = error.message;
+        } else {
+          userMessage = "Failed to analyze the image. Please try again.\n\nError: " + error.message;
+        }
+      }
+      
+      Alert.alert("Analysis Failed", userMessage, [
+        { text: "OK" }
+      ]);
     },
   });
 
