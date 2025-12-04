@@ -124,13 +124,21 @@ export default function ProfilesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Family Profiles</Text>
+        <Text style={styles.subtitle}>
+          Create profiles for each family member with their specific allergies
+        </Text>
+      </View>
+
+      <View style={styles.topButtonContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+          <Plus size={24} color="#fff" />
+          <Text style={styles.addButtonText}>Add Profile</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Family Profiles</Text>
-          <Text style={styles.subtitle}>
-            Create profiles for each family member with their specific allergies
-          </Text>
-        </View>
 
         {profiles.length === 0 && (
           <View style={styles.emptyState}>
@@ -174,14 +182,8 @@ export default function ProfilesScreen() {
             </View>
           </View>
         ))}
+        <View style={styles.bottomSpacer} />
       </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
-          <Plus size={24} color="#fff" />
-          <Text style={styles.addButtonText}>Add Profile</Text>
-        </TouchableOpacity>
-      </View>
 
       <Modal
         visible={modalVisible}
@@ -226,37 +228,43 @@ export default function ProfilesScreen() {
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Top 25 Leading Allergies</Text>
-                <View style={styles.allergenGrid}>
-                  {ALLERGENS.map((allergen) => {
-                    const isSelected = selectedAllergens.includes(allergen.id);
-                    return (
-                      <TouchableOpacity
-                        key={allergen.id}
-                        style={[
-                          styles.allergenOption,
-                          isSelected && styles.allergenOptionSelected,
-                        ]}
-                        onPress={() => toggleAllergen(allergen.id)}
-                      >
-                        <View style={styles.allergenOptionContent}>
-                          <View style={styles.allergenInfo}>
-                            <Text style={styles.allergenName}>
-                              {allergen.name}
-                            </Text>
-                            <Text style={styles.allergenDescription}>
-                              {allergen.description}
-                            </Text>
+                <ScrollView 
+                  style={styles.allergenScrollView}
+                  nestedScrollEnabled={true}
+                  showsVerticalScrollIndicator={true}
+                >
+                  <View style={styles.allergenGrid}>
+                    {ALLERGENS.map((allergen) => {
+                      const isSelected = selectedAllergens.includes(allergen.id);
+                      return (
+                        <TouchableOpacity
+                          key={allergen.id}
+                          style={[
+                            styles.allergenOption,
+                            isSelected && styles.allergenOptionSelected,
+                          ]}
+                          onPress={() => toggleAllergen(allergen.id)}
+                        >
+                          <View style={styles.allergenOptionContent}>
+                            <View style={styles.allergenInfo}>
+                              <Text style={styles.allergenName}>
+                                {allergen.name}
+                              </Text>
+                              <Text style={styles.allergenDescription}>
+                                {allergen.description}
+                              </Text>
+                            </View>
+                            {isSelected ? (
+                              <CheckCircle2 size={24} color="#10b981" />
+                            ) : (
+                              <Circle size={24} color="#d1d5db" />
+                            )}
                           </View>
-                          {isSelected ? (
-                            <CheckCircle2 size={24} color="#10b981" />
-                          ) : (
-                            <Circle size={24} color="#d1d5db" />
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
               </View>
 
               <View style={styles.inputContainer}>
@@ -305,14 +313,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f0fdf4",
   },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+    backgroundColor: "#f0fdf4",
+  },
+  topButtonContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: "#f0fdf4",
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 20,
+    paddingTop: 0,
   },
-  header: {
-    marginBottom: 24,
+  bottomSpacer: {
+    height: 20,
   },
   title: {
     fontSize: 28,
@@ -392,10 +412,7 @@ const styles = StyleSheet.create({
     fontWeight: "600" as const,
     color: "#065f46",
   },
-  footer: {
-    padding: 20,
-    paddingBottom: 20,
-  },
+
   addButton: {
     backgroundColor: "#10b981",
     flexDirection: "row",
@@ -457,6 +474,14 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     borderWidth: 1,
     borderColor: "#d1d5db",
+  },
+  allergenScrollView: {
+    maxHeight: 300,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    padding: 8,
+    backgroundColor: "#fff",
   },
   allergenGrid: {
     gap: 12,
