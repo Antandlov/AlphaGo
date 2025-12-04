@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Scan, Bug, AlertCircle, HelpCircle, Users, CheckCircle2, Sparkles, Settings } from "lucide-react-native";
@@ -29,9 +29,26 @@ export default function HomeScreen() {
 
   const handleScan = () => {
     if (profiles.length === 0) {
-      router.push("/profiles");
+      Alert.alert(
+        "No Profiles Found",
+        "You need to create at least one profile with allergens before scanning. Would you like to create one now?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Create Profile", onPress: () => router.push("/profiles") }
+        ]
+      );
       return;
     }
+    
+    if (selectedProfileIds.length === 0) {
+      Alert.alert(
+        "No Profiles Selected",
+        "Please select at least one profile to scan for. Tap on a profile chip above to select it.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    
     router.push("/scan");
   };
 

@@ -118,25 +118,59 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
   }, [isLoaded]);
 
   const saveProfiles = useCallback(async (newProfiles: Profile[]) => {
-    try {
-      console.log("[ProfileProvider] Saving profiles to storage:", newProfiles.length);
-      const serialized = JSON.stringify(newProfiles);
-      console.log("[ProfileProvider] Serialized data length:", serialized.length);
-      
-      await secureSetItem(
-        PROFILES_STORAGE_KEY,
-        serialized
-      );
-      
-      setProfiles(newProfiles);
-      console.log("[ProfileProvider] Profiles saved successfully");
-    } catch (error) {
-      console.error("[ProfileProvider] Failed to save profiles:", error);
-      if (error instanceof Error) {
-        console.error("[ProfileProvider] Error details:", error.message, error.stack);
+    const MAX_RETRIES = 3;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`[ProfileProvider] Saving profiles to storage (attempt ${attempt}/${MAX_RETRIES}):`, newProfiles.length);
+        
+        if (newProfiles.length === 0) {
+          console.warn("[ProfileProvider] Warning: Attempting to save empty profiles array");
+        }
+        
+        const serialized = JSON.stringify(newProfiles);
+        console.log("[ProfileProvider] Serialized data length:", serialized.length);
+        
+        if (serialized.length > 1024 * 1024) {
+          throw new Error("Profile data too large. Please reduce the number of profiles or custom allergens.");
+        }
+        
+        await secureSetItem(
+          PROFILES_STORAGE_KEY,
+          serialized
+        );
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const verification = await secureGetItem(PROFILES_STORAGE_KEY);
+        if (!verification) {
+          throw new Error("Failed to verify saved data - storage returned null");
+        }
+        
+        const verifiedProfiles = JSON.parse(verification);
+        if (verifiedProfiles.length !== newProfiles.length) {
+          throw new Error(`Verification failed: Expected ${newProfiles.length} profiles but found ${verifiedProfiles.length}`);
+        }
+        
+        setProfiles(newProfiles);
+        console.log("[ProfileProvider] Profiles saved and verified successfully");
+        return;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.error(`[ProfileProvider] Save attempt ${attempt}/${MAX_RETRIES} failed:`, error);
+        
+        if (attempt < MAX_RETRIES) {
+          await new Promise(resolve => setTimeout(resolve, 200 * attempt));
+        }
       }
-      throw new Error("Failed to save profile to device storage. Please check if you have enough storage space.");
     }
+    
+    console.error("[ProfileProvider] All save attempts failed");
+    if (lastError instanceof Error) {
+      console.error("[ProfileProvider] Final error:", lastError.message, lastError.stack);
+    }
+    throw new Error("Failed to save profile after multiple attempts. Please check your device storage and try again.");
   }, []);
 
   const saveSelectedProfiles = useCallback(async (ids: string[]) => {
@@ -157,9 +191,24 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
   const addProfile = useCallback(async (name: string, allergens: string[]) => {
     try {
       console.log("[ProfileProvider] Adding new profile:", { name, allergens });
+      
+      if (!name || name.trim().length === 0) {
+        throw new Error("Profile name cannot be empty");
+      }
+      
+      if (!allergens || allergens.length === 0) {
+        throw new Error("At least one allergen must be selected");
+      }
+      
+      const trimmedName = name.trim();
+      const existingProfile = profiles.find(p => p.name.toLowerCase() === trimmedName.toLowerCase());
+      if (existingProfile) {
+        throw new Error(`A profile with the name "${trimmedName}" already exists`);
+      }
+      
       const newProfile: Profile = {
         id: Date.now().toString(),
-        name,
+        name: trimmedName,
         allergens,
         createdAt: Date.now(),
       };
@@ -167,14 +216,6 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
       const updated = [...profiles, newProfile];
       await saveProfiles(updated);
       console.log("[ProfileProvider] Profile added successfully, total profiles:", updated.length);
-      
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const verified = await secureGetItem(PROFILES_STORAGE_KEY);
-      if (verified) {
-        const verifiedProfiles = JSON.parse(verified);
-        console.log("[ProfileProvider] Verified saved profiles count:", verifiedProfiles.length);
-      }
       
       return newProfile;
     } catch (error) {

@@ -78,10 +78,14 @@ export default function ScanScreen() {
 
   const analyzeMutation = useMutation({
     mutationFn: async (imageUri: string) => {
-      try {
-        console.log("[Scan] Starting ingredient analysis...");
-        console.log("[Scan] Project ID: rgnn5afmshztp4xufngmk");
-        console.log("[Scan] findProduct available:", !!findProduct);
+      const MAX_RETRIES = 2;
+      let lastError: Error | null = null;
+
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          console.log(`[Scan] Starting ingredient analysis (attempt ${attempt}/${MAX_RETRIES})...`);
+          console.log("[Scan] Project ID: rgnn5afmshztp4xufngmk");
+          console.log("[Scan] findProduct available:", !!findProduct);
 
         const combinedAllergens = getCombinedAllergens();
         const selectedAllergenInfo = combinedAllergens.map(id => ALLERGENS.find(a => a.id === id)).filter(Boolean);
@@ -212,26 +216,40 @@ Provide the overall safety assessment:
           }
         }
 
-        return analysis;
-      } catch (error) {
-        console.error("[Scan] ERROR during analysis:", error);
-        if (error instanceof Error) {
-          console.error("[Scan] Error name:", error.name);
-          console.error("[Scan] Error message:", error.message);
-          console.error("[Scan] Error stack:", error.stack);
-        }
-        
-        if (error instanceof Error) {
-          if (error.message.includes('ERR_NGROK') || error.message.includes('3200')) {
-            throw new Error("AI service is not available. Please ensure you're connected to the internet and running the app through the Rork platform. If this persists, try restarting the app.");
+          return analysis;
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error(String(error));
+          console.error(`[Scan] ERROR during analysis (attempt ${attempt}/${MAX_RETRIES}):`, error);
+          
+          if (error instanceof Error) {
+            console.error("[Scan] Error name:", error.name);
+            console.error("[Scan] Error message:", error.message);
+            console.error("[Scan] Error stack:", error.stack);
+            
+            if (error.message.includes('ERR_NGROK') || error.message.includes('3200')) {
+              throw new Error("🔌 AI service is offline\n\nThis means the backend AI service is not running. To fix this:\n\n1. Make sure you're running the app through Rork platform\n2. Check your internet connection\n3. Try refreshing the page or restarting the app\n\nIf you're a tester, contact the developer.");
+            }
+            if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('Failed to fetch')) {
+              if (attempt < MAX_RETRIES) {
+                console.log(`[Scan] Network error, retrying in ${attempt * 1000}ms...`);
+                await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+                continue;
+              }
+              throw new Error("❌ Network connection failed\n\nPlease check your internet connection and try again.");
+            }
           }
-          if (error.message.includes('fetch') || error.message.includes('network')) {
-            throw new Error("Network connection failed. Please check your internet connection and try again.");
+          
+          if (attempt < MAX_RETRIES) {
+            console.log(`[Scan] Retrying in ${attempt * 1000}ms...`);
+            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+            continue;
           }
+          
+          throw lastError || new Error("Failed to analyze image");
         }
-        
-        throw error;
       }
+      
+      throw lastError || new Error("Failed to analyze image after multiple attempts");
     },
     onSuccess: (analysis) => {
       const scanResult: ScanResult = {
