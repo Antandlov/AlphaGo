@@ -1,5 +1,5 @@
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,16 +11,20 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Camera, History, Scan } from "lucide-react-native";
+import { Camera, History, Scan as ScanIcon } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
 import { generateText } from "@rork-ai/toolkit-sdk";
 import { z } from "zod";
+import * as Haptics from "expo-haptics";
+import * as Speech from "expo-speech";
 import { useScanHistory } from "../contexts/scan-history";
 import { useIngredientDatabase } from "../contexts/ingredient-database";
 import { useProductDatabase } from "../contexts/product-database";
 import { useProfiles } from "../contexts/profiles";
 import { useI18n } from "../contexts/i18n";
+import { useScanCache } from "../contexts/scan-cache";
+import { useTheme } from "../contexts/theme";
 import { ScanResult } from "../types/scan";
 
 import { DATABASE_CONFIG } from "../constants/database-config";
@@ -48,33 +52,54 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+  const [autoScanEnabled, setAutoScanEnabled] = useState(true);
+  const [sessionScans, setSessionScans] = useState<{ safe: number; unsafe: number; caution: number }>({
+    safe: 0,
+    unsafe: 0,
+    caution: 0,
+  });
+  const [lastScanTime, setLastScanTime] = useState(0);
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
-  const { addScan } = useScanHistory();
+  const { addScan, history } = useScanHistory();
   const { findIngredient, batchAddIngredients, logUpdate } = useIngredientDatabase();
   const { findProduct } = useProductDatabase();
   const { getCombinedAllergens } = useProfiles();
   const { language, t } = useI18n();
+  const { addToCache, getFromCache } = useScanCache();
+  const { theme, isDarkMode } = useTheme();
+  const scanIndicatorOpacity = useRef(new Animated.Value(0.3)).current;
   const scanButtonScale = useRef(new Animated.Value(1)).current;
+  const lastAutoScanRef = useRef(0);
 
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(scanButtonScale, {
-          toValue: 1.1,
-          duration: 1000,
+        Animated.timing(scanIndicatorOpacity, {
+          toValue: 1,
+          duration: 800,
           useNativeDriver: true,
         }),
-        Animated.timing(scanButtonScale, {
-          toValue: 1,
-          duration: 1000,
+        Animated.timing(scanIndicatorOpacity, {
+          toValue: 0.3,
+          duration: 800,
           useNativeDriver: true,
         }),
       ])
     );
     pulse.start();
     return () => pulse.stop();
-  }, [scanButtonScale]);
+  }, [scanIndicatorOpacity]);
+
+  const handleQuickScan = useCallback(() => {
+    const now = Date.now();
+    if (now - lastAutoScanRef.current < 3000) {
+      console.log("[Scanner] Throttling auto-scan, too soon");
+      return;
+    }
+    lastAutoScanRef.current = now;
+    handleCapture();
+  }, []);
 
   const analyzeMutation = useMutation({
     mutationFn: async (imageUri: string) => {
@@ -473,7 +498,7 @@ Provide the overall safety assessment:
                   onPress={handleCapture}
                   activeOpacity={0.8}
                 >
-                  <Scan size={32} color="#fff" />
+                  <ScanIcon size={32} color="#fff" />
                 </TouchableOpacity>
               </Animated.View>
             )}

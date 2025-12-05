@@ -22,6 +22,56 @@ import * as Sharing from "expo-sharing";
 import { generateShareText } from "../utils/share-generator";
 import { getAllSafeAlternativesForScan } from "../utils/safe-alternatives";
 
+function AddToListButton({ scan }: { scan: any }) {
+  const { addItem, isInList } = useShoppingList();
+  const [isAdded, setIsAdded] = useState(false);
+
+  useEffect(() => {
+    if (scan.productName) {
+      setIsAdded(isInList(scan.productName));
+    }
+  }, [scan.productName, isInList]);
+
+  const handleAddToList = () => {
+    if (scan.productName && !isAdded) {
+      addItem({
+        id: Date.now().toString(),
+        productName: scan.productName,
+        addedAt: Date.now(),
+        scanResult: {
+          status: scan.status,
+          ingredientCount: scan.ingredients.length,
+        },
+      });
+      setIsAdded(true);
+
+      if (Platform.OS !== "web") {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={[styles.addToListButton, isAdded && styles.addToListButtonAdded]}
+      onPress={handleAddToList}
+      disabled={isAdded}
+    >
+      {isAdded ? (
+        <>
+          <Check size={20} color="#fff" />
+          <Text style={styles.addToListButtonText}>Added to Shopping List</Text>
+        </>
+      ) : (
+        <>
+          <ShoppingCart size={20} color="#fff" />
+          <Text style={styles.addToListButtonText}>Add to Shopping List</Text>
+        </>
+      )}
+    </TouchableOpacity>
+  );
+}
+
 export default function ResultScreen() {
   const router = useRouter();
   const { scanId } = useLocalSearchParams();
@@ -436,6 +486,9 @@ export default function ResultScreen() {
       </ScrollView>
 
       <SafeAreaView style={styles.bottomSafeArea} edges={["bottom"]}>
+        {scan.status === "safe" && scan.productName && (
+          <AddToListButton scan={scan} />
+        )}
         <TouchableOpacity
           style={[styles.doneButton, scan.status === "safe" ? styles.safeDoneButton : scan.status === "caution" ? styles.cautionDoneButton : styles.unsafeDoneButton]}
           onPress={() => router.back()}
@@ -673,6 +726,27 @@ const styles = StyleSheet.create({
   bottomSafeArea: {
     paddingHorizontal: 20,
     paddingBottom: 20,
+    gap: 12,
+  },
+  addToListButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: "#10b981",
+    borderWidth: 2,
+    borderColor: "#059669",
+  },
+  addToListButtonAdded: {
+    backgroundColor: "#6b7280",
+    borderColor: "#4b5563",
+  },
+  addToListButtonText: {
+    fontSize: 16,
+    fontWeight: "700" as const,
+    color: "#fff",
   },
   doneButton: {
     paddingVertical: 18,

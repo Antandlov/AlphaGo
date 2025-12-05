@@ -49,7 +49,7 @@ export default function HomeScreen() {
       return;
     }
     
-    router.push("/scan");
+    router.push("/scan-v2");
   };
 
   return (
