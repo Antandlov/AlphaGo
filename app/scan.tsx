@@ -429,10 +429,13 @@ Provide the overall safety assessment:
 
     try {
       console.log("[Camera] Taking picture...");
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const photo = await cameraRef.current.takePictureAsync({
         base64: true,
-        quality: 1,
-        skipProcessing: false,
+        quality: 0.8,
+        skipProcessing: Platform.OS === 'web',
       });
 
       if (photo && photo.base64) {
@@ -447,14 +450,12 @@ Provide the overall safety assessment:
     } catch (error) {
       console.error("[Camera] Failed to capture photo:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("[Camera] Error details:", errorMessage);
       
-      if (errorMessage.includes("touch") || errorMessage.includes("Touch")) {
-        Alert.alert(
-          "Camera Error",
-          "There was an issue with the camera. Please try:\n\n1. Close and reopen the scanner\n2. Restart the app\n3. Check camera permissions"
-        );
+      if (errorMessage.includes("touch") || errorMessage.includes("Touch") || errorMessage.includes("active touch")) {
+        console.log("[Camera] Touch-related error detected, providing user guidance");
       } else {
-        Alert.alert("Camera Error", `Failed to capture photo: ${errorMessage}`);
+        console.log("[Camera] Non-touch error:", errorMessage);
       }
     }
   };
