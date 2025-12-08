@@ -8,19 +8,20 @@ import {
   Animated,
   Easing,
   Platform,
+  ActionSheetIOS,
+  Share,
+  Linking,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { X, CheckCircle2, XCircle, AlertTriangle, Check, Volume2, Share2, ShoppingCart, Lightbulb } from "lucide-react-native";
+import { X, CheckCircle2, XCircle, AlertTriangle, Check, Volume2, Share2, ShoppingCart } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useScanHistory } from "../contexts/scan-history";
 import { useShoppingList } from "../contexts/shopping-list";
-import { useProfiles } from "../contexts/profiles";
 import { ALLERGENS } from "../constants/allergens";
 import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
-import * as Sharing from "expo-sharing";
 import { generateShareText } from "../utils/share-generator";
-import { getAllSafeAlternativesForScan } from "../utils/safe-alternatives";
 
 function AddToListButton({ scan }: { scan: any }) {
   const { addItem, isInList } = useShoppingList();
@@ -296,6 +297,121 @@ export default function ResultScreen() {
     }
   };
 
+  const handleShareResult = async () => {
+    try {
+      const shareText = generateShareText(scan);
+      
+      if (Platform.OS !== "web") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+
+      if (Platform.OS === "ios") {
+        ActionSheetIOS.showShareActionSheetWithOptions(
+          {
+            message: shareText,
+          },
+          (error) => {
+            console.error("[Share] Error:", error);
+          },
+          (success, method) => {
+            if (success) {
+              console.log("[Share] Shared via:", method);
+            }
+          }
+        );
+      } else if (Platform.OS === "android") {
+        Alert.alert(
+          "Share Scan Result",
+          "Choose how to share:",
+          [
+            {
+              text: "SMS / Text Message",
+              onPress: () => shareSMS(shareText)
+            },
+            {
+              text: "Facebook Messenger",
+              onPress: () => shareFacebookMessenger(shareText)
+            },
+            {
+              text: "Other Apps",
+              onPress: () => shareDefault(shareText)
+            },
+            {
+              text: "Cancel",
+              style: "cancel"
+            }
+          ]
+        );
+      } else {
+        await shareDefault(shareText);
+      }
+    } catch (error) {
+      console.error("[Share] Error sharing result:", error);
+      Alert.alert("Error", "Failed to share scan result. Please try again.");
+    }
+  };
+
+  const shareSMS = async (text: string) => {
+    try {
+      const separator = Platform.OS === "ios" ? "&" : "?";
+      const url = `sms:${separator}body=${encodeURIComponent(text)}`;
+      const canOpen = await Linking.canOpenURL(url);
+      
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        await shareDefault(text);
+      }
+    } catch (error) {
+      console.error("[Share] SMS error:", error);
+      await shareDefault(text);
+    }
+  };
+
+  const shareFacebookMessenger = async (text: string) => {
+    try {
+      const messengerUrl = `fb-messenger://share?text=${encodeURIComponent(text)}`;
+      const canOpen = await Linking.canOpenURL(messengerUrl);
+      
+      if (canOpen) {
+        await Linking.openURL(messengerUrl);
+      } else {
+        Alert.alert(
+          "Messenger Not Available",
+          "Facebook Messenger is not installed. Would you like to share using other apps?",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Other Apps", onPress: () => shareDefault(text) }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error("[Share] Messenger error:", error);
+      await shareDefault(text);
+    }
+  };
+
+  const shareDefault = async (text: string) => {
+    try {
+      const result = await Share.share({
+        message: text,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log("[Share] Shared via:", result.activityType);
+        } else {
+          console.log("[Share] Shared successfully");
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log("[Share] Dismissed");
+      }
+    } catch (error) {
+      console.error("[Share] Default share error:", error);
+      throw error;
+    }
+  };
+
   return (
     <View style={[styles.container, getBackgroundStyle()]}>
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -309,6 +425,15 @@ export default function ResultScreen() {
               accessibilityRole="button"
             >
               <Volume2 size={24} color={isSpeaking ? "#10b981" : getIconColor()} strokeWidth={isSpeaking ? 3 : 2} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.shareButton}
+              onPress={handleShareResult}
+              testID="share-button"
+              accessibilityLabel="Share scan result"
+              accessibilityRole="button"
+            >
+              <Share2 size={24} color={getIconColor()} strokeWidth={2} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.closeIconButton}
@@ -527,6 +652,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   voiceButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  shareButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
