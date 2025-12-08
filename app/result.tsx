@@ -343,7 +343,27 @@ export default function ResultScreen() {
           ]
         );
       } else {
-        await shareDefault(shareText);
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              text: shareText,
+              title: "AlphaGo Scan Result"
+            });
+            console.log("[Share] Shared successfully via Web Share API");
+          } catch (shareError: any) {
+            if (shareError.name === 'AbortError') {
+              console.log("[Share] User cancelled share");
+            } else if (shareError.name === 'NotAllowedError') {
+              console.log("[Share] Web Share API blocked - falling back to copy");
+              copyToClipboard(shareText);
+            } else {
+              console.error("[Share] Web Share API error:", shareError);
+              copyToClipboard(shareText);
+            }
+          }
+        } else {
+          copyToClipboard(shareText);
+        }
       }
     } catch (error) {
       console.error("[Share] Error sharing result:", error);
@@ -410,6 +430,33 @@ export default function ResultScreen() {
       console.error("[Share] Default share error:", error);
       throw error;
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          Alert.alert(
+            "Copied to Clipboard",
+            "The scan result has been copied to your clipboard. You can now paste it in any app."
+          );
+        })
+        .catch(() => {
+          showTextFallback(text);
+        });
+    } else {
+      showTextFallback(text);
+    }
+  };
+
+  const showTextFallback = (text: string) => {
+    Alert.alert(
+      "Share Scan Result",
+      text,
+      [
+        { text: "OK" }
+      ]
+    );
   };
 
   return (

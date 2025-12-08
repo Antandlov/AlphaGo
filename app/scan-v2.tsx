@@ -433,12 +433,13 @@ Respond with ONLY valid JSON:
     try {
       console.log("[Camera] Taking picture");
       
-      await new Promise(resolve => setTimeout(resolve, 100));
+      if (Platform.OS !== "web") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
       
       const photo = await cameraRef.current.takePictureAsync({
         base64: true,
         quality: 0.8,
-        skipProcessing: Platform.OS === 'web',
       });
 
       if (photo && photo.base64) {
@@ -456,9 +457,12 @@ Respond with ONLY valid JSON:
       console.error("[Camera] Error details:", errorMessage);
       
       if (errorMessage.includes("touch") || errorMessage.includes("Touch") || errorMessage.includes("active touch")) {
-        console.log("[Camera] Touch-related error detected, providing user guidance");
+        console.log("[Camera] Touch-related error on web - ignoring");
       } else {
-        console.log("[Camera] Non-touch error:", errorMessage);
+        Alert.alert(
+          "Camera Error",
+          "Failed to capture photo. Please try again.\n\n" + errorMessage
+        );
       }
     }
   };
