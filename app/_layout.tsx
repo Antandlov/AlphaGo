@@ -26,6 +26,7 @@ function RootLayoutNav() {
       <Stack screenOptions={{ headerBackTitle: "Back" }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="scan" options={{ headerShown: false }} />
+        <Stack.Screen name="scan-v2" options={{ headerShown: false }} />
         <Stack.Screen name="report-bug" options={{ headerShown: false }} />
         <Stack.Screen name="report-product" options={{ headerShown: false }} />
         <Stack.Screen name="beta-feedback" options={{ headerShown: false }} />

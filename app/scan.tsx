@@ -416,23 +416,45 @@ Provide the overall safety assessment:
   console.log("[Camera] Permission granted, showing camera");
 
   const handleCapture = async () => {
-    if (cameraRef.current && !analyzeMutation.isPending) {
-      try {
-        console.log("Taking picture...");
-        const photo = await cameraRef.current.takePictureAsync({
-          base64: true,
-          quality: 1,
-          skipProcessing: false,
-        });
+    if (!cameraRef.current) {
+      console.error("[Camera] Camera ref not available");
+      Alert.alert("Camera Error", "Camera is not ready. Please wait a moment and try again.");
+      return;
+    }
 
-        if (photo && photo.base64) {
-          console.log("Picture taken, analyzing...");
-          const base64Image = `data:image/jpeg;base64,${photo.base64}`;
-          setCapturedImage(base64Image);
-          analyzeMutation.mutate(base64Image);
-        }
-      } catch (error) {
-        console.error("Failed to capture photo:", error);
+    if (analyzeMutation.isPending) {
+      console.log("[Camera] Analysis already in progress, skipping");
+      return;
+    }
+
+    try {
+      console.log("[Camera] Taking picture...");
+      const photo = await cameraRef.current.takePictureAsync({
+        base64: true,
+        quality: 1,
+        skipProcessing: false,
+      });
+
+      if (photo && photo.base64) {
+        console.log("[Camera] Picture taken, analyzing...");
+        const base64Image = `data:image/jpeg;base64,${photo.base64}`;
+        setCapturedImage(base64Image);
+        analyzeMutation.mutate(base64Image);
+      } else {
+        console.error("[Camera] Photo capture returned no data");
+        Alert.alert("Camera Error", "Failed to capture photo. Please try again.");
+      }
+    } catch (error) {
+      console.error("[Camera] Failed to capture photo:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes("touch") || errorMessage.includes("Touch")) {
+        Alert.alert(
+          "Camera Error",
+          "There was an issue with the camera. Please try:\n\n1. Close and reopen the scanner\n2. Restart the app\n3. Check camera permissions"
+        );
+      } else {
+        Alert.alert("Camera Error", `Failed to capture photo: ${errorMessage}`);
       }
     }
   };
