@@ -12,6 +12,7 @@ import { I18nContext, useI18n } from "../contexts/i18n";
 import { ScanCacheProvider } from "../contexts/scan-cache";
 import { ShoppingListProvider } from "../contexts/shopping-list";
 import { ThemeProvider } from "../contexts/theme";
+import { ErrorBoundary } from "../contexts/error-boundary";
 import LanguageSelectionScreen from "./language-selection";
 import TermsOfServiceScreen from "./terms-of-service";
 import { runAllMigrations } from "../utils/data-migration";
@@ -132,24 +133,26 @@ function AppContent() {
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <I18nContext>
-          <IngredientDatabaseProvider>
-            <ProductDatabaseProvider>
-              <ProfileProvider>
-                <ScanHistoryProvider>
-                  <ScanCacheProvider>
-                    <ShoppingListProvider>
-                      <AppContent />
-                    </ShoppingListProvider>
-                  </ScanCacheProvider>
-                </ScanHistoryProvider>
-              </ProfileProvider>
-            </ProductDatabaseProvider>
-          </IngredientDatabaseProvider>
-        </I18nContext>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <I18nContext>
+            <IngredientDatabaseProvider>
+              <ProductDatabaseProvider>
+                <ProfileProvider>
+                  <ScanHistoryProvider>
+                    <ScanCacheProvider>
+                      <ShoppingListProvider>
+                        <AppContent />
+                      </ShoppingListProvider>
+                    </ScanCacheProvider>
+                  </ScanHistoryProvider>
+                </ProfileProvider>
+              </ProductDatabaseProvider>
+            </IngredientDatabaseProvider>
+          </I18nContext>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
