@@ -8,10 +8,10 @@ import {
   Animated,
   Easing,
   Platform,
-  ActionSheetIOS,
   Share,
   Linking,
   Alert,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { X, CheckCircle2, XCircle, AlertTriangle, Check, Volume2, Share2, ShoppingCart } from "lucide-react-native";
@@ -79,6 +79,7 @@ export default function ResultScreen() {
   const { history } = useScanHistory();
   const [showDetails, setShowDetails] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const scan = history.find((s) => s.id === scanId);
 
@@ -297,73 +298,40 @@ export default function ResultScreen() {
     }
   };
 
-  const handleShareResult = async () => {
+  const handleShareResult = () => {
+    try {
+      if (Platform.OS !== "web") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      setShowShareModal(true);
+    } catch (error) {
+      console.error("[Share] Error opening share modal:", error);
+      Alert.alert("Error", "Failed to open share options. Please try again.");
+    }
+  };
+
+  const handleShareOption = async (option: 'sms' | 'messenger' | 'imessage' | 'other') => {
     try {
       const shareText = generateShareText(scan);
-      
+      setShowShareModal(false);
+
       if (Platform.OS !== "web") {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
 
-      if (Platform.OS === "ios") {
-        ActionSheetIOS.showShareActionSheetWithOptions(
-          {
-            message: shareText,
-          },
-          (error) => {
-            console.error("[Share] Error:", error);
-          },
-          (success, method) => {
-            if (success) {
-              console.log("[Share] Shared via:", method);
-            }
-          }
-        );
-      } else if (Platform.OS === "android") {
-        Alert.alert(
-          "Share Scan Result",
-          "Choose how to share:",
-          [
-            {
-              text: "SMS / Text Message",
-              onPress: () => shareSMS(shareText)
-            },
-            {
-              text: "Facebook Messenger",
-              onPress: () => shareFacebookMessenger(shareText)
-            },
-            {
-              text: "Other Apps",
-              onPress: () => shareDefault(shareText)
-            },
-            {
-              text: "Cancel",
-              style: "cancel"
-            }
-          ]
-        );
-      } else {
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              text: shareText,
-              title: "AlphaGo Scan Result"
-            });
-            console.log("[Share] Shared successfully via Web Share API");
-          } catch (shareError: any) {
-            if (shareError.name === 'AbortError') {
-              console.log("[Share] User cancelled share");
-            } else if (shareError.name === 'NotAllowedError') {
-              console.log("[Share] Web Share API blocked - falling back to copy");
-              copyToClipboard(shareText);
-            } else {
-              console.error("[Share] Web Share API error:", shareError);
-              copyToClipboard(shareText);
-            }
-          }
-        } else {
-          copyToClipboard(shareText);
-        }
+      switch (option) {
+        case 'sms':
+          await shareSMS(shareText);
+          break;
+        case 'messenger':
+          await shareFacebookMessenger(shareText);
+          break;
+        case 'imessage':
+          await shareiMessage(shareText);
+          break;
+        case 'other':
+          await shareDefault(shareText);
+          break;
       }
     } catch (error) {
       console.error("[Share] Error sharing result:", error);
@@ -407,6 +375,26 @@ export default function ResultScreen() {
       }
     } catch (error) {
       console.error("[Share] Messenger error:", error);
+      await shareDefault(text);
+    }
+  };
+
+  const shareiMessage = async (text: string) => {
+    try {
+      if (Platform.OS === "ios") {
+        const imessageUrl = `sms:&body=${encodeURIComponent(text)}`;
+        const canOpen = await Linking.canOpenURL(imessageUrl);
+        
+        if (canOpen) {
+          await Linking.openURL(imessageUrl);
+        } else {
+          await shareSMS(text);
+        }
+      } else {
+        await shareSMS(text);
+      }
+    } catch (error) {
+      console.error("[Share] iMessage error:", error);
       await shareDefault(text);
     }
   };
@@ -461,6 +449,71 @@ export default function ResultScreen() {
 
   return (
     <View style={[styles.container, getBackgroundStyle()]}>
+      <Modal
+        visible={showShareModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Share Scan Result</Text>
+            <Text style={styles.modalSubtitle}>Choose how you&apos;d like to share</Text>
+            
+            <View style={styles.shareOptions}>
+              <TouchableOpacity
+                style={styles.shareOptionButton}
+                onPress={() => handleShareOption('sms')}
+              >
+                <View style={styles.shareOptionIcon}>
+                  <Text style={styles.shareOptionEmoji}>💬</Text>
+                </View>
+                <Text style={styles.shareOptionText}>SMS / Text</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.shareOptionButton}
+                onPress={() => handleShareOption('messenger')}
+              >
+                <View style={styles.shareOptionIcon}>
+                  <Text style={styles.shareOptionEmoji}>📱</Text>
+                </View>
+                <Text style={styles.shareOptionText}>Messenger</Text>
+              </TouchableOpacity>
+
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  style={styles.shareOptionButton}
+                  onPress={() => handleShareOption('imessage')}
+                >
+                  <View style={styles.shareOptionIcon}>
+                    <Text style={styles.shareOptionEmoji}>💙</Text>
+                  </View>
+                  <Text style={styles.shareOptionText}>iMessage</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={styles.shareOptionButton}
+                onPress={() => handleShareOption('other')}
+              >
+                <View style={styles.shareOptionIcon}>
+                  <Text style={styles.shareOptionEmoji}>📤</Text>
+                </View>
+                <Text style={styles.shareOptionText}>Other Apps</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setShowShareModal(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <View style={styles.header}>
           <View style={styles.headerButtons}>
@@ -967,5 +1020,76 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600" as const,
     color: "#fff",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 28,
+    width: "100%",
+    maxWidth: 380,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "700" as const,
+    color: "#1f2937",
+    textAlign: "center" as const,
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 15,
+    color: "#6b7280",
+    textAlign: "center" as const,
+    marginBottom: 28,
+  },
+  shareOptions: {
+    gap: 12,
+  },
+  shareOptionButton: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    backgroundColor: "#f9fafb",
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: "#e5e7eb",
+  },
+  shareOptionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#fff",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    marginRight: 14,
+  },
+  shareOptionEmoji: {
+    fontSize: 26,
+  },
+  shareOptionText: {
+    fontSize: 17,
+    fontWeight: "600" as const,
+    color: "#1f2937",
+  },
+  modalCancelButton: {
+    marginTop: 16,
+    padding: 16,
+    alignItems: "center" as const,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    fontWeight: "600" as const,
+    color: "#6b7280",
   },
 });
