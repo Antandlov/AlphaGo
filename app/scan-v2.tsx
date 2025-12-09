@@ -452,18 +452,15 @@ Respond with ONLY valid JSON:
         Alert.alert("Camera Error", "Failed to capture photo. Please try again.");
       }
     } catch (error) {
-      console.error("[Camera] Failed to capture:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("[Camera] Error details:", errorMessage);
       
       if (errorMessage.includes("touch") || errorMessage.includes("Touch") || errorMessage.includes("active touch")) {
-        console.log("[Camera] Touch-related error on web - ignoring");
-      } else {
-        Alert.alert(
-          "Camera Error",
-          "Failed to capture photo. Please try again.\n\n" + errorMessage
-        );
+        console.log("[Camera] Touch-related error on web (expected) - ignoring");
+        return;
       }
+      
+      console.error("[Camera] Failed to capture:", error);
+      Alert.alert("Camera Error", "Failed to capture photo. Please try again.");
     }
   };
 

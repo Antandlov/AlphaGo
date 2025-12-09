@@ -448,15 +448,15 @@ Provide the overall safety assessment:
         Alert.alert("Camera Error", "Failed to capture photo. Please try again.");
       }
     } catch (error) {
-      console.error("[Camera] Failed to capture photo:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("[Camera] Error details:", errorMessage);
       
       if (errorMessage.includes("touch") || errorMessage.includes("Touch") || errorMessage.includes("active touch")) {
-        console.log("[Camera] Touch-related error detected, providing user guidance");
-      } else {
-        console.log("[Camera] Non-touch error:", errorMessage);
+        console.log("[Camera] Touch-related error on web (expected) - ignoring");
+        return;
       }
+      
+      console.error("[Camera] Failed to capture photo:", error);
+      Alert.alert("Camera Error", "Failed to capture photo. Please try again.");
     }
   };
 
