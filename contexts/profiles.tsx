@@ -5,8 +5,10 @@ import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Profile } from "../types/profile";
 
-const PROFILES_STORAGE_KEY = "@alphago_profiles";
-const SELECTED_PROFILES_STORAGE_KEY = "@alphago_selected_profiles";
+const PROFILES_STORAGE_KEY = "alphago_profiles";
+const SELECTED_PROFILES_STORAGE_KEY = "alphago_selected_profiles";
+const OLD_PROFILES_STORAGE_KEY = "@alphago_profiles";
+const OLD_SELECTED_PROFILES_STORAGE_KEY = "@alphago_selected_profiles";
 
 const isWeb = Platform.OS === "web";
 
@@ -59,10 +61,31 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
     const loadProfiles = async () => {
       try {
         console.log("[ProfileProvider] Loading profiles from secure storage...");
-        const [storedProfiles, storedSelected] = await Promise.all([
-          secureGetItem(PROFILES_STORAGE_KEY),
-          secureGetItem(SELECTED_PROFILES_STORAGE_KEY),
-        ]);
+        
+        let storedProfiles = await secureGetItem(PROFILES_STORAGE_KEY);
+        let storedSelected = await secureGetItem(SELECTED_PROFILES_STORAGE_KEY);
+        
+        if (!storedProfiles) {
+          console.log("[ProfileProvider] Checking old storage key for migration...");
+          const oldProfiles = await secureGetItem(OLD_PROFILES_STORAGE_KEY);
+          if (oldProfiles) {
+            console.log("[ProfileProvider] Migrating from old storage key...");
+            await secureSetItem(PROFILES_STORAGE_KEY, oldProfiles);
+            await secureDeleteItem(OLD_PROFILES_STORAGE_KEY);
+            storedProfiles = oldProfiles;
+          }
+        }
+        
+        if (!storedSelected) {
+          console.log("[ProfileProvider] Checking old selected storage key for migration...");
+          const oldSelected = await secureGetItem(OLD_SELECTED_PROFILES_STORAGE_KEY);
+          if (oldSelected) {
+            console.log("[ProfileProvider] Migrating selected profiles from old storage key...");
+            await secureSetItem(SELECTED_PROFILES_STORAGE_KEY, oldSelected);
+            await secureDeleteItem(OLD_SELECTED_PROFILES_STORAGE_KEY);
+            storedSelected = oldSelected;
+          }
+        }
 
         if (!mounted) return;
 

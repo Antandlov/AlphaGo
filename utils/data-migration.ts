@@ -35,7 +35,7 @@ export const migrateProfileData = async (): Promise<void> => {
   try {
     console.log("[Migration] Starting profile data migration...");
     
-    const profilesKey = "@alphago_profiles";
+    const profilesKey = "alphago_profiles";
     const storedData = await secureGetItem(profilesKey);
     
     if (!storedData) {
