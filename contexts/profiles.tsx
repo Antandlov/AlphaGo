@@ -67,23 +67,31 @@ export const [ProfileProvider, useProfiles] = createContextHook(() => {
         
         if (!storedProfiles) {
           console.log("[ProfileProvider] Checking old storage key for migration...");
-          const oldProfiles = await secureGetItem(OLD_PROFILES_STORAGE_KEY);
-          if (oldProfiles) {
-            console.log("[ProfileProvider] Migrating from old storage key...");
-            await secureSetItem(PROFILES_STORAGE_KEY, oldProfiles);
-            await secureDeleteItem(OLD_PROFILES_STORAGE_KEY);
-            storedProfiles = oldProfiles;
+          try {
+            const oldProfiles = await secureGetItem(OLD_PROFILES_STORAGE_KEY);
+            if (oldProfiles) {
+              console.log("[ProfileProvider] Migrating from old storage key...");
+              await secureSetItem(PROFILES_STORAGE_KEY, oldProfiles);
+              await secureDeleteItem(OLD_PROFILES_STORAGE_KEY);
+              storedProfiles = oldProfiles;
+            }
+          } catch (migrationError) {
+            console.log("[ProfileProvider] Migration from old key failed (expected if key doesn't exist):", migrationError);
           }
         }
         
         if (!storedSelected) {
           console.log("[ProfileProvider] Checking old selected storage key for migration...");
-          const oldSelected = await secureGetItem(OLD_SELECTED_PROFILES_STORAGE_KEY);
-          if (oldSelected) {
-            console.log("[ProfileProvider] Migrating selected profiles from old storage key...");
-            await secureSetItem(SELECTED_PROFILES_STORAGE_KEY, oldSelected);
-            await secureDeleteItem(OLD_SELECTED_PROFILES_STORAGE_KEY);
-            storedSelected = oldSelected;
+          try {
+            const oldSelected = await secureGetItem(OLD_SELECTED_PROFILES_STORAGE_KEY);
+            if (oldSelected) {
+              console.log("[ProfileProvider] Migrating selected profiles from old storage key...");
+              await secureSetItem(SELECTED_PROFILES_STORAGE_KEY, oldSelected);
+              await secureDeleteItem(OLD_SELECTED_PROFILES_STORAGE_KEY);
+              storedSelected = oldSelected;
+            }
+          } catch (migrationError) {
+            console.log("[ProfileProvider] Migration from old selected key failed (expected if key doesn't exist):", migrationError);
           }
         }
 
