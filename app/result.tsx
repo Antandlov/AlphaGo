@@ -14,7 +14,7 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { X, CheckCircle2, XCircle, AlertTriangle, Check, Volume2, Share2, ShoppingCart } from "lucide-react-native";
+import { X, CheckCircle2, XCircle, AlertTriangle, Check, Volume2, Share2, ShoppingCart, Scan } from "lucide-react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useScanHistory } from "../contexts/scan-history";
 import { useShoppingList } from "../contexts/shopping-list";
@@ -715,7 +715,20 @@ export default function ResultScreen() {
           <AddToListButton scan={scan} />
         )}
         <TouchableOpacity
-          style={[styles.doneButton, scan.status === "safe" ? styles.safeDoneButton : scan.status === "caution" ? styles.cautionDoneButton : styles.unsafeDoneButton]}
+          style={[styles.scanNewButton, scan.status === "safe" ? styles.safeScanNewButton : scan.status === "caution" ? styles.cautionScanNewButton : styles.unsafeScanNewButton]}
+          onPress={() => {
+            if (Platform.OS !== "web") {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            router.replace("/");
+          }}
+          testID="scan-new-item-button"
+        >
+          <Scan size={20} color="#fff" strokeWidth={2.5} />
+          <Text style={styles.scanNewButtonText}>Scan New Item</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.doneButton}
           onPress={() => router.back()}
         >
           <Text style={styles.doneButtonText}>Done</Text>
@@ -959,7 +972,7 @@ const styles = StyleSheet.create({
   bottomSafeArea: {
     paddingHorizontal: 20,
     paddingBottom: 20,
-    gap: 12,
+    gap: 10,
   },
   addToListButton: {
     flexDirection: "row",
@@ -981,24 +994,40 @@ const styles = StyleSheet.create({
     fontWeight: "700" as const,
     color: "#fff",
   },
-  doneButton: {
+  scanNewButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
     paddingVertical: 18,
     borderRadius: 16,
-    alignItems: "center",
   },
-  safeDoneButton: {
+  safeScanNewButton: {
     backgroundColor: "#10b981",
   },
-  cautionDoneButton: {
+  cautionScanNewButton: {
     backgroundColor: "#f59e0b",
   },
-  unsafeDoneButton: {
+  unsafeScanNewButton: {
     backgroundColor: "#ef4444",
   },
-  doneButtonText: {
+  scanNewButtonText: {
     fontSize: 18,
     fontWeight: "700" as const,
     color: "#fff",
+  },
+  doneButton: {
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: "center",
+    backgroundColor: "#f3f4f6",
+    borderWidth: 2,
+    borderColor: "#e5e7eb",
+  },
+  doneButtonText: {
+    fontSize: 16,
+    fontWeight: "600" as const,
+    color: "#6b7280",
   },
   errorContainer: {
     flex: 1,
