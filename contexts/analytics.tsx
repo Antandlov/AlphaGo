@@ -32,70 +32,7 @@ const generateSessionId = () => {
 
 export const [AnalyticsProvider, useAnalytics] = createContextHook(() => {
   const sessionIdRef = useRef<string>("");
-
-  useEffect(() => {
-    const initializeSession = async () => {
-      const storedSessionId = await AsyncStorage.getItem(STORAGE_KEYS.SESSION_ID);
-      if (!storedSessionId) {
-        sessionIdRef.current = generateSessionId();
-        await AsyncStorage.setItem(STORAGE_KEYS.SESSION_ID, sessionIdRef.current);
-      } else {
-        sessionIdRef.current = storedSessionId;
-      }
-
-      trackEvent("app_opened");
-    };
-
-    initializeSession();
-
-    const handleErrors = (error: Error, isFatal: boolean) => {
-      console.error("Global Error Handler:", error, "isFatal:", isFatal);
-      reportCrash(error.message, error.stack, { isFatal });
-    };
-
-    const globalWithErrorUtils = global as any;
-    if (globalWithErrorUtils.ErrorUtils) {
-      const originalHandler = globalWithErrorUtils.ErrorUtils.getGlobalHandler();
-      globalWithErrorUtils.ErrorUtils.setGlobalHandler((error: any, isFatal: any) => {
-        handleErrors(error, isFatal ?? false);
-        originalHandler?.(error, isFatal);
-      });
-    }
-  }, []);
-
-  const trackEvent = useCallback(async (event: string, properties?: Record<string, any>) => {
-    try {
-      const analyticsEvent: AnalyticsEvent = {
-        event,
-        properties,
-        timestamp: new Date().toISOString(),
-        platform: Platform.OS,
-        sessionId: sessionIdRef.current || "unknown",
-      };
-
-      console.log("📊 Analytics Event:", analyticsEvent);
-
-      const storedEvents = await AsyncStorage.getItem(STORAGE_KEYS.EVENTS);
-      let events: AnalyticsEvent[] = [];
-      if (storedEvents) {
-        try {
-          events = JSON.parse(storedEvents);
-        } catch (parseError) {
-          console.error("Failed to parse stored events, resetting:", parseError);
-          await AsyncStorage.removeItem(STORAGE_KEYS.EVENTS);
-        }
-      }
-      events.push(analyticsEvent);
-
-      if (events.length > 100) {
-        events.shift();
-      }
-
-      await AsyncStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
-    } catch (error) {
-      console.error("Failed to track event:", error);
-    }
-  }, []);
+  const initializedRef = useRef(false);
 
   const reportCrash = useCallback(
     async (error: string, stack?: string, context?: Record<string, any>) => {
@@ -134,6 +71,73 @@ export const [AnalyticsProvider, useAnalytics] = createContextHook(() => {
     },
     []
   );
+
+  const trackEvent = useCallback(async (event: string, properties?: Record<string, any>) => {
+    try {
+      const analyticsEvent: AnalyticsEvent = {
+        event,
+        properties,
+        timestamp: new Date().toISOString(),
+        platform: Platform.OS,
+        sessionId: sessionIdRef.current || "unknown",
+      };
+
+      console.log("📊 Analytics Event:", analyticsEvent);
+
+      const storedEvents = await AsyncStorage.getItem(STORAGE_KEYS.EVENTS);
+      let events: AnalyticsEvent[] = [];
+      if (storedEvents) {
+        try {
+          events = JSON.parse(storedEvents);
+        } catch (parseError) {
+          console.error("Failed to parse stored events, resetting:", parseError);
+          await AsyncStorage.removeItem(STORAGE_KEYS.EVENTS);
+        }
+      }
+      events.push(analyticsEvent);
+
+      if (events.length > 100) {
+        events.shift();
+      }
+
+      await AsyncStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
+    } catch (error) {
+      console.error("Failed to track event:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    const initializeSession = async () => {
+      const storedSessionId = await AsyncStorage.getItem(STORAGE_KEYS.SESSION_ID);
+      if (!storedSessionId) {
+        sessionIdRef.current = generateSessionId();
+        await AsyncStorage.setItem(STORAGE_KEYS.SESSION_ID, sessionIdRef.current);
+      } else {
+        sessionIdRef.current = storedSessionId;
+      }
+
+      trackEvent("app_opened");
+    };
+
+    initializeSession();
+
+    const handleErrors = (error: Error, isFatal: boolean) => {
+      console.error("Global Error Handler:", error, "isFatal:", isFatal);
+      reportCrash(error.message, error.stack, { isFatal });
+    };
+
+    const globalWithErrorUtils = global as any;
+    if (globalWithErrorUtils.ErrorUtils) {
+      const originalHandler = globalWithErrorUtils.ErrorUtils.getGlobalHandler();
+      globalWithErrorUtils.ErrorUtils.setGlobalHandler((error: any, isFatal: any) => {
+        handleErrors(error, isFatal ?? false);
+        originalHandler?.(error, isFatal);
+      });
+    }
+  }, [trackEvent, reportCrash]);
 
   const getEvents = useCallback(async (): Promise<AnalyticsEvent[]> => {
     try {
