@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Scan, Bug, AlertCircle, HelpCircle, Users, CheckCircle2, Sparkles, Settings } from "lucide-react-native";
+import { Scan, Bug, AlertCircle, HelpCircle, Users, CheckCircle2, Sparkles, Settings, UserPlus } from "lucide-react-native";
 import { useProfiles } from "../contexts/profiles";
 import { ALLERGENS } from "../constants/allergens";
 
@@ -129,6 +129,24 @@ export default function HomeScreen() {
         )}
 
         <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.createProfileButton]}
+            onPress={() => router.push("/profiles")}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.iconCircle, styles.createProfileIconCircle]}>
+              <UserPlus size={28} color="#065f46" />
+            </View>
+            <View style={styles.buttonTextContainer}>
+              <Text style={[styles.buttonTitle, styles.createProfileButtonTitle]}>
+                Create Profile
+              </Text>
+              <Text style={[styles.buttonSubtitle, styles.createProfileButtonSubtitle]}>
+                Add or manage profiles with allergens
+              </Text>
+            </View>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.button, styles.primaryButton]}
             onPress={handleScan}
@@ -414,6 +432,20 @@ const styles = StyleSheet.create({
   },
   secondaryButtonSubtitle: {
     color: "#6b7280",
+  },
+  createProfileButton: {
+    backgroundColor: "#d1fae5",
+    borderWidth: 2,
+    borderColor: "#10b981",
+  },
+  createProfileIconCircle: {
+    backgroundColor: "#fff",
+  },
+  createProfileButtonTitle: {
+    color: "#065f46",
+  },
+  createProfileButtonSubtitle: {
+    color: "#10b981",
   },
   footer: {
     alignItems: "center",
