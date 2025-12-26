@@ -20,11 +20,9 @@ import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
 import { useScanHistory } from "../contexts/scan-history";
 import { useIngredientDatabase } from "../contexts/ingredient-database";
-import { useProductDatabase } from "../contexts/product-database";
 import { useProfiles } from "../contexts/profiles";
 import { useI18n } from "../contexts/i18n";
 import { useScanCache } from "../contexts/scan-cache";
-import { useShoppingList } from "../contexts/shopping-list";
 import { useTheme } from "../contexts/theme";
 import { ScanResult, SafetyStatus } from "../types/scan";
 import { DATABASE_CONFIG } from "../constants/database-config";
@@ -66,12 +64,10 @@ export default function ScanV2Screen() {
   const router = useRouter();
   const { addScan } = useScanHistory();
   const { findIngredient, batchAddIngredients, logUpdate } = useIngredientDatabase();
-  const { findProduct } = useProductDatabase();
   const { getCombinedAllergens } = useProfiles();
   const { language, t } = useI18n();
   const { addToCache, getFromCache } = useScanCache();
-  const { theme, isDarkMode } = useTheme();
-  const { list: shoppingList } = useShoppingList();
+  const { theme } = useTheme();
   
   const scanIndicatorOpacity = useRef(new Animated.Value(0.3)).current;
   const flashOpacity = useRef(new Animated.Value(0)).current;
@@ -419,6 +415,10 @@ Respond with ONLY valid JSON:
   };
 
   const handleCapture = async () => {
+    console.log("[Camera] ===== CAPTURE BUTTON PRESSED =====");
+    console.log("[Camera] Camera ref exists:", !!cameraRef.current);
+    console.log("[Camera] Analysis pending:", analyzeMutation.isPending);
+    
     if (!cameraRef.current) {
       console.error("[Camera] Camera ref not available");
       Alert.alert("Camera Error", "Camera is not ready. Please wait a moment and try again.");
@@ -441,6 +441,8 @@ Respond with ONLY valid JSON:
         base64: true,
         quality: 0.8,
       });
+      
+      console.log("[Camera] Photo taken, has base64:", !!photo?.base64);
 
       if (photo && photo.base64) {
         console.log("[Camera] Picture captured successfully");
@@ -622,7 +624,12 @@ Respond with ONLY valid JSON:
                 <Text style={styles.loadingText}>{t.analyzingIngredients}</Text>
               </View>
             ) : (
-              <TouchableOpacity style={styles.captureButton} onPress={handleCapture} activeOpacity={0.8}>
+              <TouchableOpacity 
+                style={styles.captureButton} 
+                onPress={handleCapture} 
+                activeOpacity={0.8}
+                testID="scan-capture-button"
+              >
                 <View style={styles.captureButtonInner}>
                   <Zap size={32} color="#fff" fill="#fff" />
                 </View>
